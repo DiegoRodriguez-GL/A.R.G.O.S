@@ -1,4 +1,4 @@
-"""``argos report`` -- produce HTML / JSONL reports (implemented in M6)."""
+"""``argos report``: produce HTML / JSONL reports (implemented in M6)."""
 
 from __future__ import annotations
 
@@ -7,11 +7,9 @@ from typing import Annotated
 
 import typer
 
-from argos_cli.console import get_err_console
+from argos_cli.commands._placeholder import not_implemented
 
 app = typer.Typer(help="Render ARGOS findings into HTML or JSONL.")
-
-_NOT_IMPLEMENTED_EXIT = 2
 
 
 @app.callback(invoke_without_command=True)
@@ -30,8 +28,4 @@ def run(
     ] = None,
 ) -> None:
     _ = (input_path, output_path, fmt)
-    get_err_console().print(
-        "[argos.warn]argos report[/] is not implemented yet. Planned for Module 6; "
-        "see docs-internal/PLAN.md.",
-    )
-    raise typer.Exit(code=_NOT_IMPLEMENTED_EXIT)
+    not_implemented("report", "Module 6")

@@ -1,7 +1,5 @@
 # Pre-commit hooks for ARGOS.
-#
-# Runs locally via `pre-commit run --all-files` and in CI as a gating check.
-# Any hook added here MUST also run as part of the GitHub Actions pipeline.
+# Run locally via `pre-commit run --all-files`. CI runs the same set.
 
 default_language_version:
   python: python3.11
@@ -25,6 +23,12 @@ repos:
       - id: mixed-line-ending
         args: ["--fix=lf"]
       - id: detect-private-key
+
+  # Secret scanning: catches tokens, API keys, PEM blobs.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.1
+    hooks:
+      - id: gitleaks
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9
