@@ -56,6 +56,10 @@ def list_rules(
         str | None,
         typer.Option("--match", "-m", help="Glob over rule ids (e.g. 'MCP-SEC-DOCKER-*')."),
     ] = None,
+    compact: Annotated[
+        bool,
+        typer.Option("--compact", "-c", help="Print one concise line per rule."),
+    ] = False,
 ) -> None:
     """List every registered rule in a tabular view."""
     floor = _parse_severity(severity)
@@ -75,6 +79,24 @@ def list_rules(
     if not rules:
         get_err_console().print("[argos.warn]no rules match those filters[/]")
         raise typer.Exit(code=1)
+
+    if compact:
+        for rule in rules:
+            style = _SEVERITY_STYLE[rule.severity]
+            asi = (
+                ",".join(
+                    ref.split(":", 1)[1]
+                    for ref in rule.compliance_refs
+                    if ref.startswith("owasp_asi:")
+                )
+                or "-"
+            )
+            console.print(
+                f"[{style}]{rule.severity.value.upper():<8}[/]  "
+                f"{rule.rule_id:<34}  [argos.muted]{asi}[/]",
+            )
+        console.print(f"[argos.muted]{len(rules)} rule(s) shown.[/]")
+        return
 
     table = Table(
         show_header=True,
