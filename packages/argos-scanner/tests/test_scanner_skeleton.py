@@ -1,4 +1,4 @@
-"""The scanner ships no rules in Module 0 -- verify the import surface only."""
+"""Smoke tests at the argos_scanner package boundary."""
 
 from __future__ import annotations
 
@@ -9,10 +9,9 @@ def test_package_imports_cleanly() -> None:
     assert argos_scanner.__version__ == "0.0.1"
 
 
-def test_rules_namespace_is_empty() -> None:
-    from argos_scanner import rules
+def test_builtin_rules_are_discoverable() -> None:
+    from argos_scanner import all_rules
 
-    # `annotations` comes from ``from __future__ import annotations`` in the
-    # module; it is part of the Python runtime, not the ARGOS public surface.
-    public = [name for name in dir(rules) if not name.startswith("_") and name != "annotations"]
-    assert public == []
+    ids = {r.rule_id for r in all_rules()}
+    assert len(ids) >= 15
+    assert all(i.startswith("MCP-SEC-") for i in ids)

@@ -6,6 +6,28 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added -- Module 2 (static MCP scanner)
+
+- Parser that normalises `claude_desktop`, `vscode` and `mcp-spec` dialects
+  into a single `MCPConfig` model (frozen, extra-forbid).
+- Seventeen built-in rules under `argos_scanner.rules` covering secrets
+  (pattern + entropy), plaintext transport, shell patterns (pipe-to-shell,
+  interpreters with `-c`, destructive commands, eval/substitution),
+  Docker (`--privileged`, host mounts, `--network host`, unpinned images),
+  filesystem-server root access, supply chain (`npx -y`, `uvx`, docker
+  tags), tool poisoning heuristics, and sensitive env keys.
+- Rule registry with `@register` decorator and glob selection.
+- Scanner engine (`argos_scanner.scan`) wired into the CLI:
+  `argos scan <path> [--rules ...] [--severity ...] [--format table|jsonl]`.
+- Table and JSONL output; exit code 1 when any HIGH/CRITICAL finding is
+  present.
+- Fixtures: `clean.claude_desktop.json`, `risky.claude_desktop.json`,
+  `mcp_spec.json`.
+- Test suite: parser (9 cases), rules (20 cases), engine (9 cases),
+  CLI integration (6 cases). 54 new tests total.
+- Every finding carries `compliance_refs` qualified ids that resolve in
+  the Module 1 mapping graph.
+
 ### Changed -- hardening pass
 
 - Pinned every GitHub Action by commit SHA (supply-chain defence; OpenSSF

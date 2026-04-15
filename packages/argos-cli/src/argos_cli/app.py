@@ -1,4 +1,4 @@
-"""Typer application root. Sub-commands live in argos_cli.commands.*"""
+"""Typer application root. Sub-commands live in ``argos_cli.commands.*``."""
 
 from __future__ import annotations
 
@@ -9,7 +9,10 @@ from rich.panel import Panel
 from rich.text import Text
 
 from argos_cli import __version__
-from argos_cli.commands import proxy, redteam, report, scan
+from argos_cli.commands.proxy import proxy
+from argos_cli.commands.redteam import redteam
+from argos_cli.commands.report import report
+from argos_cli.commands.scan import scan
 from argos_cli.console import get_console
 
 app = typer.Typer(
@@ -25,10 +28,10 @@ app = typer.Typer(
     pretty_exceptions_show_locals=False,
 )
 
-app.add_typer(scan.app, name="scan")
-app.add_typer(redteam.app, name="redteam")
-app.add_typer(proxy.app, name="proxy")
-app.add_typer(report.app, name="report")
+app.command("scan")(scan)
+app.command("redteam")(redteam)
+app.command("proxy")(proxy)
+app.command("report")(report)
 
 
 def _banner() -> Panel:

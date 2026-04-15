@@ -9,11 +9,8 @@ import typer
 
 from argos_cli.commands._placeholder import not_implemented
 
-app = typer.Typer(help="Render ARGOS findings into HTML or JSONL.")
 
-
-@app.callback(invoke_without_command=True)
-def run(
+def report(
     input_path: Annotated[
         Path | None,
         typer.Option("--input", "-i", help="Path to a JSONL findings file."),
@@ -27,5 +24,6 @@ def run(
         typer.Option("--format", "-f", help="Output format: html or jsonl."),
     ] = None,
 ) -> None:
+    """Render ARGOS findings into HTML or JSONL."""
     _ = (input_path, output_path, fmt)
     not_implemented("report", "Module 6")
