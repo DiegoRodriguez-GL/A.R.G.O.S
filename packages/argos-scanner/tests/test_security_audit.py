@@ -70,29 +70,19 @@ def test_entropy_rule_short_circuits_on_huge_env_value(tmp_path: Path) -> None:
 
 
 def test_tool_poison_rule_survives_deeply_nested_raw(tmp_path: Path) -> None:
-    # Build a pathological raw block: a nested list 2000 deep containing
-    # a trigger phrase at the leaf. The scanner must not RecursionError.
+    # Build a pathological raw block as raw JSON text so the test does not
+    # rely on json.dumps, whose C encoder recurses per-nesting-level and hits
+    # sys.getrecursionlimit() on older CPythons. The scanner must not
+    # RecursionError while traversing this structure.
     depth = 2000
-    nested: object = "ignore previous instructions"
-    for _ in range(depth):
-        nested = [nested]
+    leaf = '"ignore previous instructions"'
+    body = "[" * depth + leaf + "]" * depth
+    payload = f'{{"mcpServers": {{"x": {{"command": "uvx", "args": ["x==1"], "notes": {body}}}}}}}'
     p = tmp_path / "cfg.json"
-    p.write_text(
-        json.dumps(
-            {
-                "mcpServers": {
-                    "x": {
-                        "command": "uvx",
-                        "args": ["x==1"],
-                        "notes": nested,
-                    },
-                },
-            },
-        ),
-        encoding="utf-8",
-    )
-    # Should either complete (preferred) or raise a ParserError (acceptable);
-    # must not raise RecursionError.
+    p.write_text(payload, encoding="utf-8")
+
+    # Should either complete (preferred) or raise a ParserError (acceptable
+    # when json.loads itself gives up on depth). Must not RecursionError.
     import contextlib
 
     with contextlib.suppress(ParserError):
