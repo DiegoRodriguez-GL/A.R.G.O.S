@@ -1,39 +1,124 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://argos-ai-audit.github.io/schemas/rule-0.1.0.json",
   "title": "ARGOS rule",
-  "description": "Authoritative schema for ARGOS YAML rules. Module 3 extends this with concrete matcher/extractor definitions.",
+  "description": "Authoritative schema for ARGOS YAML rules (v0.1.0). Rules produced by this schema are accepted by argos_rules.parse_rule at runtime; mismatched documents are rejected.",
   "type": "object",
   "required": ["id", "info", "matchers"],
   "additionalProperties": false,
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^[A-Z0-9][A-Z0-9_\\-\\.]{1,63}$",
-      "description": "Stable rule identifier. Must match the canonical form enforced by argos_core.Finding."
+      "pattern": "^[A-Z0-9][A-Z0-9_\\-\\.]{1,127}$",
+      "description": "Stable rule identifier. Uppercase + digits + [-_.]"
     },
     "info": {
       "type": "object",
       "required": ["name", "severity"],
       "additionalProperties": false,
       "properties": {
-        "name":        { "type": "string", "minLength": 1 },
+        "name":        { "type": "string", "minLength": 1, "maxLength": 200 },
         "author":      { "type": "string" },
         "severity":    { "type": "string", "enum": ["info", "low", "medium", "high", "critical"] },
-        "description": { "type": "string" },
-        "remediation": { "type": "string" },
-        "references":  { "type": "array", "items": { "type": "string", "format": "uri" } },
-        "compliance":  { "type": "array", "items": { "type": "string" } },
-        "tags":        { "type": "array", "items": { "type": "string" } }
+        "description": { "type": "string", "maxLength": 4000 },
+        "remediation": { "type": "string", "maxLength": 2000 },
+        "compliance":  {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9_]+:[A-Za-z0-9][A-Za-z0-9_\\-\\.]*$" }
+        },
+        "tags":        { "type": "array", "items": { "type": "string" } },
+        "references":  { "type": "array", "items": { "type": "string", "format": "uri" } }
       }
+    },
+    "matchers-condition": {
+      "type": "string",
+      "enum": ["or", "and"],
+      "default": "or"
     },
     "matchers": {
       "type": "array",
       "minItems": 1,
-      "items": { "type": "object" }
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/matcher" }
     },
     "extractors": {
       "type": "array",
-      "items": { "type": "object" }
+      "maxItems": 8,
+      "items": { "$ref": "#/definitions/extractor" }
+    }
+  },
+  "definitions": {
+    "matcher": {
+      "oneOf": [
+        { "$ref": "#/definitions/wordMatcher" },
+        { "$ref": "#/definitions/regexMatcher" },
+        { "$ref": "#/definitions/globMatcher" }
+      ]
+    },
+    "wordMatcher": {
+      "type": "object",
+      "required": ["type", "words"],
+      "additionalProperties": false,
+      "properties": {
+        "type":              { "const": "word" },
+        "words":             { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "maxItems": 64 },
+        "part":              { "type": "string", "default": "server.argv" },
+        "condition":         { "type": "string", "enum": ["or", "and"], "default": "or" },
+        "case-insensitive":  { "type": "boolean", "default": false },
+        "negative":          { "type": "boolean", "default": false }
+      }
+    },
+    "regexMatcher": {
+      "type": "object",
+      "required": ["type", "regex"],
+      "additionalProperties": false,
+      "properties": {
+        "type":      { "const": "regex" },
+        "regex":     { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 1000 }, "minItems": 1, "maxItems": 32 },
+        "part":      { "type": "string", "default": "server.argv" },
+        "condition": { "type": "string", "enum": ["or", "and"], "default": "or" },
+        "negative":  { "type": "boolean", "default": false }
+      }
+    },
+    "globMatcher": {
+      "type": "object",
+      "required": ["type", "globs"],
+      "additionalProperties": false,
+      "properties": {
+        "type":      { "const": "glob" },
+        "globs":     { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "maxItems": 32 },
+        "part":      { "type": "string", "default": "server.argv" },
+        "condition": { "type": "string", "enum": ["or", "and"], "default": "or" },
+        "negative":  { "type": "boolean", "default": false }
+      }
+    },
+    "extractor": {
+      "oneOf": [
+        { "$ref": "#/definitions/regexExtractor" },
+        { "$ref": "#/definitions/wordExtractor" }
+      ]
+    },
+    "regexExtractor": {
+      "type": "object",
+      "required": ["type", "regex"],
+      "additionalProperties": false,
+      "properties": {
+        "type":   { "const": "regex" },
+        "regex":  { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "part":   { "type": "string", "default": "server.argv" },
+        "group":  { "type": "integer", "minimum": 0, "default": 0 }
+      }
+    },
+    "wordExtractor": {
+      "type": "object",
+      "required": ["type", "words"],
+      "additionalProperties": false,
+      "properties": {
+        "type":              { "const": "word" },
+        "words":             { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "maxItems": 64 },
+        "part":              { "type": "string", "default": "server.argv" },
+        "case-insensitive":  { "type": "boolean", "default": false }
+      }
     }
   }
 }

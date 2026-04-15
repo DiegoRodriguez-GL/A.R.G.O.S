@@ -1,0 +1,30 @@
+id: CUSTOM-PKG-TARBALL-URL
+info:
+  name: "MCP server installed from a tarball URL"
+  author: argos
+  severity: high
+  description: >
+    The server is launched from an explicit .tar.gz URL. Tarball installs
+    bypass registry provenance (signatures, integrity hashes, SBOMs) and
+    are a classic rug-pull vector for MCP ecosystems.
+  remediation: >
+    Publish or install the package from a trusted registry with a pinned
+    version or, at minimum, a pinned git commit sha.
+  compliance:
+    - owasp_asi:ASI09
+    - owasp_asi:ASI09-01
+    - csa_aicm:DSP-02
+    - nist_ai_rmf:GV-6
+    - iso_42001:A.10.3
+  tags: [supply-chain, tarball]
+
+matchers:
+  - type: regex
+    part: server.argv
+    regex:
+      - "https?://\\S+\\.(tar\\.gz|tgz|zip)(\\?\\S*)?"
+
+extractors:
+  - type: regex
+    part: server.argv
+    regex: "https?://\\S+\\.(?:tar\\.gz|tgz|zip)(?:\\?\\S*)?"

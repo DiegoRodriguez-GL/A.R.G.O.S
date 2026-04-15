@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import fnmatch
+from pathlib import Path
 from typing import Annotated
 
 import typer
 from argos_core import Severity
+from argos_rules import RuleError, load_rule_file, load_rules_dir
 from argos_scanner import all_rules
 from rich import box
 from rich.panel import Panel
@@ -96,6 +98,38 @@ def list_rules(
         )
     console.print(table)
     console.print(f"[argos.muted]{len(rules)} rule(s) shown.[/]")
+
+
+@app.command("validate")
+def validate_rule_file(
+    path: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=True,
+            readable=True,
+            resolve_path=True,
+            help="YAML rule file or directory of them.",
+        ),
+    ],
+) -> None:
+    """Validate a YAML rule document (or directory of them) against the DSL."""
+    console = get_console()
+    try:
+        rules = load_rules_dir(path) if path.is_dir() else (load_rule_file(path),)
+    except RuleError as exc:
+        get_err_console().print(f"[argos.danger]invalid:[/] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    for rule in rules:
+        console.print(
+            f"[argos.ok]ok[/]  {rule.id}  "
+            f"[argos.muted]({rule.info.severity.value}, "
+            f"{len(rule.matchers)} matcher(s), "
+            f"{len(rule.info.compliance)} compliance ref(s))[/]",
+        )
+    console.print(f"[argos.muted]{len(rules)} rule(s) validated.[/]")
 
 
 @app.command("show")

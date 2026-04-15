@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
   "argos-core",
+  "argos-rules",
   "pydantic>=2.9.2",
 ]
 

@@ -1,0 +1,26 @@
+id: CUSTOM-INTERNAL-HOST-REMOTE
+info:
+  name: "Remote MCP server pointing at an internal corporate host"
+  author: argos
+  severity: high
+  description: >
+    The server url resolves to an internal hostname
+    (internal.example.com, *.corp, *.lan, *.local). Exposing agents to
+    internal-only services without an explicit allowlist is a common
+    cause of SSRF-like exfiltration via tool chaining.
+  remediation: >
+    Route the agent's MCP traffic through the ARGOS proxy and restrict
+    internal URLs to an approved allowlist.
+  compliance:
+    - owasp_asi:ASI03
+    - owasp_asi:ASI03-01
+    - csa_aicm:IAM-02
+    - eu_ai_act:ART-15
+  tags: [network, ssrf, internal]
+
+matchers:
+  - type: regex
+    part: server.url
+    regex:
+      - "^https?://([A-Za-z0-9.\\-]+\\.)?(corp|lan|local|internal)\\b"
+      - "^https?://internal\\.[A-Za-z0-9.\\-]+"
