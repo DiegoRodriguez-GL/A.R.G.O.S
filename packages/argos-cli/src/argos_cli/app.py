@@ -11,6 +11,7 @@ from rich.text import Text
 from argos_cli import __version__
 from argos_cli.commands import compliance as compliance_cmds
 from argos_cli.commands import rules as rules_cmds
+from argos_cli.commands.doctor import doctor
 from argos_cli.commands.proxy import proxy
 from argos_cli.commands.redteam import redteam
 from argos_cli.commands.report import report
@@ -33,6 +34,7 @@ app = typer.Typer(
 
 # Single-verb commands.
 app.command("status", help="One-screen summary of the ARGOS install.")(status)
+app.command("doctor", help="Auto-detect and scan every known MCP config.")(doctor)
 app.command("scan", help="Statically scan an MCP configuration.")(scan)
 app.command("redteam", help="Run red-teaming probes (Module 4).")(redteam)
 app.command("proxy", help="Run the MCP audit proxy (Module 5).")(proxy)
