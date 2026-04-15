@@ -18,7 +18,20 @@ _SHELL_INTERPRETERS: frozenset[str] = frozenset(
     {"bash", "sh", "zsh", "ksh", "dash", "pwsh", "powershell.exe", "cmd.exe"}
 )
 _DESTRUCTIVE = re.compile(
-    r"(^|\s)(rm\s+-rf\s+/|chmod\s+777\s+/|mkfs|dd\s+.*of=/dev/)", re.IGNORECASE
+    r"(^|\s)("
+    # rm -rf hitting root or a system directory (not /tmp, /opt/myapp, etc.)
+    r"rm\s+-[rRfF]{1,2}\s+/(\s|$|etc\b|var\b|usr\b|bin\b|sbin\b|boot\b|"
+    r"root\b|home\b|Users\b|lib\b|proc\b|sys\b|dev\b)"
+    # chmod 777 on root or system dirs
+    r"|chmod\s+-?R?\s*777\s+/(\s|$|etc\b|usr\b|bin\b|sbin\b|boot\b|root\b|home\b|opt\b|lib\b)"
+    # mkfs on any filesystem type is always destructive
+    r"|mkfs\.[A-Za-z0-9]+\b"
+    # dd writing to a device node
+    r"|dd\s+[^|&;]*\bof=/dev/"
+    # fork bomb
+    r"|:\(\)\s*\{\s*:\|:&\s*\}\s*;:"
+    r")",
+    re.IGNORECASE,
 )
 _EVAL_INTERP = re.compile(r"\beval\s*\(|\bexec\s*\(|`[^`]+`|\$\([^)]+\)")
 
