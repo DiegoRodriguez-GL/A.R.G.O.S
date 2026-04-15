@@ -1,0 +1,206 @@
+# ARGOS monorepo -- workspace root. Not published; release artefacts are
+# produced per package under packages/*/.
+
+[project]
+name = "argos-monorepo"
+version = "0.0.0"
+description = "ARGOS -- Agent Risk Governance and Operational Security. Monorepo root."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "ARGOS Contributors" }]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Software Development :: Quality Assurance",
+  "Typing :: Typed",
+]
+
+dependencies = [
+  "argos-core",
+  "argos-cli",
+  "argos-scanner",
+  "argos-redteam",
+  "argos-proxy",
+  "argos-reporter",
+  "argos-rules",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.6.9",
+  "mypy>=1.11.2",
+  "pytest>=8.3.3",
+  "pytest-cov>=5.0.0",
+  "pytest-asyncio>=0.24.0",
+  "hypothesis>=6.112.0",
+  "pre-commit>=3.8.0",
+  "types-PyYAML>=6.0.12.20240917",
+  "types-jsonschema>=4.23.0.20240813",
+  "jsonschema>=4.23.0",
+]
+
+[tool.uv]
+# Always use the system Python that satisfies `requires-python` (>=3.11).
+# Avoids uv downloading its own managed interpreter, which has caused
+# venv-shim quoting bugs on Windows.
+python-preference = "only-system"
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+argos-core     = { workspace = true }
+argos-cli      = { workspace = true }
+argos-scanner  = { workspace = true }
+argos-redteam  = { workspace = true }
+argos-proxy    = { workspace = true }
+argos-reporter = { workspace = true }
+argos-rules    = { workspace = true }
+
+# --- ruff ----------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+  "design-system/tokens.py",
+  "apps/landing/dist",
+  "apps/docs/site",
+]
+
+[tool.ruff.lint]
+select = [
+  "E", "W",     # pycodestyle
+  "F",          # pyflakes
+  "I",          # isort
+  "B",          # bugbear
+  "C4",         # comprehensions
+  "SIM",        # simplify
+  "UP",         # pyupgrade
+  "PL",         # pylint subset
+  "RUF",        # ruff-specific
+  "N",          # pep8-naming
+  "ANN",        # annotations
+  "ASYNC",      # async bugs
+  "S",          # bandit (security)
+  "BLE",        # blind-except
+  "PT",         # pytest
+  "PTH",        # prefer pathlib
+  "RET",        # return simplification
+  "DTZ",        # timezone-aware datetimes
+  "G",          # logging string formatting
+  "INP",        # implicit namespace package
+  "ISC",        # implicit string concat
+  "PIE",        # misc
+  "T20",        # print() out of scripts
+  "YTT",        # sys.version_info misuse
+]
+ignore = [
+  "ANN401",   # typing.Any when deliberately erased
+  "PLR0913",  # function arg count -- judgement call
+  "PLR2004",  # magic numbers in tests
+  "S101",     # assert is the point of pytest
+  "ISC001",   # conflicts with the formatter
+  # TCH rules are incompatible with our runtime-annotation frameworks
+  # (Pydantic models, Typer command signatures, dataclass fields).
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["ANN", "S", "PLR", "INP", "PLC0415"]
+"scripts/**"  = ["T201", "INP"]
+"conftest.py" = ["INP"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 88
+
+# --- mypy (strict, RNF-04) ----------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_return_any = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+check_untyped_defs = true
+show_error_codes = true
+pretty = true
+mypy_path = [
+  "packages/argos-core/src",
+  "packages/argos-cli/src",
+  "packages/argos-scanner/src",
+  "packages/argos-redteam/src",
+  "packages/argos-proxy/src",
+  "packages/argos-reporter/src",
+  "packages/argos-rules/src",
+]
+explicit_package_bases = true
+namespace_packages = true
+exclude = [
+  "design-system/tokens\\.py$",
+  "apps/",
+  "build/",
+  "dist/",
+]
+
+# Test modules are discovered with --import-mode=importlib (no `tests.*` package
+# names exist), so per-module mypy overrides are unnecessary here.
+
+# --- pytest --------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = [
+  "-ra",
+  "--strict-markers",
+  "--strict-config",
+  "--showlocals",
+  "--tb=short",
+  "--import-mode=importlib",
+]
+testpaths = ["packages"]
+python_files = ["test_*.py", "*_test.py"]
+asyncio_mode = "auto"
+markers = [
+  "slow: marks tests as slow (deselect with -m 'not slow')",
+  "integration: end-to-end integration tests",
+  "network: requires outbound network access",
+]
+filterwarnings = [
+  "error",
+  "ignore::DeprecationWarning:importlib.*",
+]
+
+# --- coverage (>= 70%, RNF-07) ------------------------------------------
+[tool.coverage.run]
+branch = true
+source = ["packages"]
+omit = [
+  "*/tests/*",
+  "*/__main__.py",
+]
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+skip_covered = false
+fail_under = 70
+exclude_also = [
+  "raise NotImplementedError",
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+  "\\.\\.\\.",
+]

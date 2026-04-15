@@ -1,0 +1,78 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/docs/**"
+      - "apps/landing/**"
+      - "packages/*/src/**"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build docs + landing
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Landing (Astro)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/landing/package-lock.json
+        if: hashFiles('apps/landing/package-lock.json') != ''
+
+      - name: Build landing
+        if: hashFiles('apps/landing/package.json') != ''
+        working-directory: apps/landing
+        run: |
+          npm ci
+          npm run build
+
+      # Docs (MkDocs)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build docs
+        if: hashFiles('apps/docs/mkdocs.yml') != ''
+        working-directory: apps/docs
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs mkdocs-material mkdocstrings[python]
+          mkdocs build --strict --site-dir ../../dist-site/docs
+
+      - name: Assemble site
+        run: |
+          mkdir -p dist-site
+          if [ -d apps/landing/dist ]; then
+            cp -R apps/landing/dist/. dist-site/
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-site
+
+  deploy:
+    name: deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
