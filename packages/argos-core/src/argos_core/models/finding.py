@@ -27,7 +27,12 @@ class Finding(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     id: FindingId = Field(default_factory=_new_finding_id)
-    rule_id: str = Field(..., description="Rule identifier, e.g. 'ASI01-01'.")
+    rule_id: str = Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        description="Rule identifier, e.g. 'ASI01-01'.",
+    )
     title: str = Field(..., min_length=1, max_length=160)
     description: str = Field(..., min_length=1)
     severity: Severity
@@ -37,7 +42,12 @@ class Finding(BaseModel):
     # N:M cross-reference to compliance controls, e.g. "OWASP-ASI01".
     compliance_refs: tuple[str, ...] = Field(default_factory=tuple)
     remediation: str | None = None
-    producer: str = Field(..., description="Package name that emitted the finding.")
+    producer: str = Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        description="Package name that emitted the finding.",
+    )
     schema_version: Literal[1] = 1
 
     def validate_rule_id(self) -> None:

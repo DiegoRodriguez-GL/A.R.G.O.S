@@ -26,10 +26,16 @@ def _platform_config_path() -> Path:
     return base / "argos" / "argos.yaml"
 
 
+_MAX_CONFIG_BYTES = 1 * 1024 * 1024  # 1 MiB is plenty for a user config
+
+
 def _load_file(path: Path) -> dict[str, Any]:
     if not path.is_file():
         return {}
-    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if path.stat().st_size > _MAX_CONFIG_BYTES:
+        msg = f"{path} is larger than {_MAX_CONFIG_BYTES} bytes; refusing to load."
+        raise ValueError(msg)
+    raw = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
     if not isinstance(raw, dict):
         raise TypeError(f"{path} must contain a YAML mapping at the root")
     return raw

@@ -8,11 +8,17 @@ exactly what triggered the rule.
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 
 from argos_rules.models import Extractor, RegexExtractor, WordExtractor
 
 _MAX_HITS_PER_EXTRACTOR = 16
 _MAX_HIT_CHARS = 256
+
+
+@lru_cache(maxsize=1024)
+def _compile(pattern: str) -> re.Pattern[str]:
+    return re.compile(pattern)
 
 
 def _truncate(s: str) -> str:
@@ -22,7 +28,7 @@ def _truncate(s: str) -> str:
 
 
 def _extract_regex(parts: list[str], extractor: RegexExtractor) -> list[str]:
-    compiled = re.compile(extractor.regex)
+    compiled = _compile(extractor.regex)
     hits: list[str] = []
     for part in parts:
         for match in compiled.finditer(part):
