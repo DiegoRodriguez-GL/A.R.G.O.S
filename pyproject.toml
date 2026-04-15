@@ -101,19 +101,42 @@ select = [
   "PIE",        # misc
   "T20",        # print() out of scripts
   "YTT",        # sys.version_info misuse
+  "ARG",        # unused arguments
+  "FBT",        # boolean-trap arguments
+  "ICN",        # import conventions (np, pd, ...)
+  "INT",        # gettext consistency
+  "PGH",        # pygrep hooks
+  "PYI",        # stub-file style
+  "SLF",        # accessing private members
+  "SLOT",       # __slots__ correctness
+  "TID",        # tidy imports
+  "TRY",        # try/except anti-patterns
+  "FLY",        # f-strings over .format()
+  "PERF",       # obvious perf issues
+  "FURB",       # modern-Python refactors
+  "LOG",        # logging correctness
+  "EM",         # stringified exceptions
+  "EXE",        # executable bit
+  "FA",         # future-annotations consistency
 ]
 ignore = [
   "ANN401",   # typing.Any when deliberately erased
-  "PLR0913",  # function arg count -- judgement call
+  "PLR0913",  # function arg count
   "PLR2004",  # magic numbers in tests
   "S101",     # assert is the point of pytest
   "ISC001",   # conflicts with the formatter
-  # TCH rules are incompatible with our runtime-annotation frameworks
+  "TRY003",   # long messages in exception constructors are fine for ARGOS
+  "EM101",    # string literal in exception is readable here
+  "EM102",    # same for f-strings
+  "FBT001",   # boolean positional allowed in Typer callbacks
+  "FBT002",   # boolean default allowed in Typer callbacks
+  "COM812",   # conflicts with the formatter (Ruff docs)
+  # TCH rules are incompatible with runtime-annotation frameworks
   # (Pydantic models, Typer command signatures, dataclass fields).
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["ANN", "S", "PLR", "INP", "PLC0415"]
+"**/tests/**" = ["ANN", "S", "PLR", "INP", "PLC0415", "SLF"]
 "scripts/**"  = ["T201", "INP"]
 "conftest.py" = ["INP"]
 
@@ -183,6 +206,11 @@ filterwarnings = [
   "error",
   "ignore::DeprecationWarning:importlib.*",
 ]
+
+# --- bandit (security, in case it is invoked outside ruff) ---------------
+[tool.bandit]
+exclude_dirs = ["tests", "packages/*/tests", ".venv", "build", "dist", "scripts"]
+skips = ["B101"]  # assert is the point of pytest
 
 # --- coverage (>= 70%, RNF-07) ------------------------------------------
 [tool.coverage.run]

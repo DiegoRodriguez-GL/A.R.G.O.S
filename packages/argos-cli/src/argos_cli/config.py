@@ -31,7 +31,7 @@ def _load_file(path: Path) -> dict[str, Any]:
         return {}
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if not isinstance(raw, dict):
-        raise ValueError(f"{path} must contain a YAML mapping at the root")
+        raise TypeError(f"{path} must contain a YAML mapping at the root")
     return raw
 
 

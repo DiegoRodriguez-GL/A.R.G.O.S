@@ -108,6 +108,11 @@ third party by mistake is a confidentiality breach.
 - *Control:* the reporter redacts fields matching configured patterns (emails,
   bearer tokens, AWS access keys) before rendering. Opt-out requires an
   explicit `--no-redact` flag plus a confirmation prompt.
+- *Control:* reports ship with a strict `Content-Security-Policy` meta tag
+  (`default-src 'none'`; `style-src 'unsafe-inline'` only; no external
+  origins), `referrer: no-referrer`, and `X-Content-Type-Options: nosniff`.
+  Opening a compromised report in a browser cannot trigger outbound
+  requests.
 
 ### T7. Proxy-man-in-the-middle (targets A1, A2, A6)
 

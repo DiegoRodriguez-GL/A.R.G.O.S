@@ -1,18 +1,29 @@
-# ARGOS code owners.
-#
-# The left-most matching path takes precedence. Replace the placeholder
-# handle with your GitHub username before pushing to the remote.
+# ARGOS code owners. Leftmost match wins within a file.
+# Replace @DiegoRodriguez-GL with additional handles when contributors join.
 
-*                                      @argos-maintainer
+*                                   @DiegoRodriguez-GL
 
-/docs-internal/                        @argos-maintainer
-/.github/                              @argos-maintainer
-/design-system/                        @argos-maintainer
+# Governance and security-sensitive surfaces
+/.github/                           @DiegoRodriguez-GL
+/.github/workflows/                 @DiegoRodriguez-GL
+/.github/CODEOWNERS                 @DiegoRodriguez-GL
+/SECURITY.md                        @DiegoRodriguez-GL
+/docs-internal/THREAT_MODEL.md      @DiegoRodriguez-GL
 
-/packages/argos-core/                  @argos-maintainer
-/packages/argos-cli/                   @argos-maintainer
-/packages/argos-scanner/               @argos-maintainer
-/packages/argos-redteam/               @argos-maintainer
-/packages/argos-proxy/                 @argos-maintainer
-/packages/argos-reporter/              @argos-maintainer
-/packages/argos-rules/                 @argos-maintainer
+# Design system (single source of truth, affects every UI surface)
+/design-system/                     @DiegoRodriguez-GL
+/scripts/build_tokens.py            @DiegoRodriguez-GL
+
+# Compliance data (auditable evidence -- requires explicit review)
+/packages/argos-core/src/argos_core/compliance/data/   @DiegoRodriguez-GL
+/packages/argos-core/src/argos_core/compliance/models.py @DiegoRodriguez-GL
+/docs-internal/RFCs/                @DiegoRodriguez-GL
+
+# Per-package ownership (forward-looking; will be split when contributors join)
+/packages/argos-core/               @DiegoRodriguez-GL
+/packages/argos-cli/                @DiegoRodriguez-GL
+/packages/argos-scanner/            @DiegoRodriguez-GL
+/packages/argos-redteam/            @DiegoRodriguez-GL
+/packages/argos-proxy/              @DiegoRodriguez-GL
+/packages/argos-reporter/           @DiegoRodriguez-GL
+/packages/argos-rules/              @DiegoRodriguez-GL

@@ -1,0 +1,10 @@
+# RFC 9116 security.txt for ARGOS.
+# Served from the root of the docs/landing site when Module 8 ships.
+
+Contact: https://github.com/DiegoRodriguez-GL/A.R.G.O.S/security/advisories/new
+Expires: 2027-04-15T00:00:00.000Z
+Encryption: https://github.com/DiegoRodriguez-GL.gpg
+Preferred-Languages: en, es
+Canonical: https://github.com/DiegoRodriguez-GL/A.R.G.O.S/security/policy
+Policy: https://github.com/DiegoRodriguez-GL/A.R.G.O.S/blob/main/SECURITY.md
+Acknowledgments: https://github.com/DiegoRodriguez-GL/A.R.G.O.S/security/advisories

@@ -56,9 +56,7 @@ def test_every_mapping_reference_resolves() -> None:
     for entry in index.mapping.entries:
         if entry.source not in known:
             missing.append(("source", entry.source))
-        for target in entry.targets:
-            if target not in known:
-                missing.append(("target", target))
+        missing.extend(("target", t) for t in entry.targets if t not in known)
     assert not missing, f"unresolved qualified ids: {missing}"
 
 

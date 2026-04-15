@@ -6,6 +6,27 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed -- hardening pass
+
+- Pinned every GitHub Action by commit SHA (supply-chain defence; OpenSSF
+  Scorecard recommendation).
+- Added `step-security/harden-runner` with `egress-policy: audit` to every
+  CI job for detection of unexpected outbound network traffic.
+- Added `gitleaks` to the pre-commit hook set (secret scanning before
+  commit hits the index).
+- Added a strict `Content-Security-Policy` meta tag and `X-Content-Type-
+  Options: nosniff` to the HTML reporter base template; reports now render
+  with `default-src 'none'` and no referrer leakage.
+- Extended `ruff` lint selection from 22 to 35 rule categories, including
+  `FURB`, `LOG`, `EM`, `PERF`, `SLF`, `TRY`, `ARG`, `TID`, `PYI`, `FLY`.
+- Added a `bandit` configuration block to `pyproject.toml` so the tool
+  runs with identical exclusions to the `ruff S` rule set.
+- Added `.well-known/security.txt` (RFC 9116) for future serving from the
+  docs site.
+- Consolidated the four CLI skeleton commands onto a single
+  `not_implemented()` helper (`commands/_placeholder.py`); per-command
+  files now contain only their Typer signature.
+
 ### Added -- Module 1 (Methodology and compliance mapping)
 
 - Enriched Pydantic models for compliance data: `Control`, `FrameworkMeta`,
