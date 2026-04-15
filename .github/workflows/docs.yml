@@ -49,7 +49,7 @@ jobs:
           npm ci
           npm run build
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.guard.outputs.skip == 'false' && hashFiles('apps/docs/mkdocs.yml') != ''
         with:
           python-version: "3.11"
