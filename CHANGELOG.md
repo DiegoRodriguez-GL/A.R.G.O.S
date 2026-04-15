@@ -6,7 +6,25 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Added
+### Added -- Module 1 (Methodology and compliance mapping)
+
+- Enriched Pydantic models for compliance data: `Control`, `FrameworkMeta`,
+  `FrameworkData`, `Mapping`, `MappingEntry`, `MappingMeta`.
+- Five bundled framework YAMLs under
+  `packages/argos-core/src/argos_core/compliance/data/`:
+  `owasp_asi.yaml` (hub, 10 threats + operational refinements), `csa_aicm.yaml`
+  (AI-specific subset), `eu_ai_act.yaml` (Articles 9-15 + Annex III/IV),
+  `nist_ai_rmf.yaml` (GOVERN/MAP/MEASURE/MANAGE), `iso_42001.yaml`
+  (Annex A controls).
+- `mapping.yaml` with N:M cross-framework relationships anchored on OWASP ASI.
+- Integrity tests guaranteeing the OE1 invariant (>= 3 cross-framework
+  controls per ASI threat, >= 4 frameworks touched) and resolving every
+  qualified id against real controls.
+- Methodology documentation at `apps/docs/docs/methodology/index.md` with
+  Mermaid diagrams.
+- RFC 0002 documenting the compliance data model and design rationale.
+
+### Added -- Module 0 (Foundation)
 
 - Monorepo scaffolding: `packages/argos-core`, `argos-cli`, `argos-scanner`,
   `argos-redteam`, `argos-proxy`, `argos-reporter`, `argos-rules`.

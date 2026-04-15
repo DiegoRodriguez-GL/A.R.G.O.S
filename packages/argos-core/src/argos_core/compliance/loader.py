@@ -1,4 +1,4 @@
-"""Compliance YAML loader. Tolerant of missing files during M0."""
+"""Load bundled compliance data (frameworks + cross-framework mapping)."""
 
 from __future__ import annotations
 
@@ -7,35 +7,17 @@ from importlib import resources
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
 
+from argos_core.compliance.models import (
+    Control,
+    ControlIndex,
+    FrameworkData,
+    FrameworkId,
+    FrameworkMeta,
+    Mapping,
+)
 
-class Control(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    id: str = Field(..., min_length=1)
-    framework: str = Field(..., min_length=1)
-    title: str = Field(..., min_length=1)
-    text: str = Field(..., min_length=1)
-    tags: tuple[str, ...] = Field(default_factory=tuple)
-
-
-class ControlIndex(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, arbitrary_types_allowed=True)
-
-    controls: tuple[Control, ...] = Field(default_factory=tuple)
-
-    def by_id(self, control_id: str) -> Control | None:
-        for c in self.controls:
-            if c.id == control_id:
-                return c
-        return None
-
-    def by_framework(self, framework: str) -> tuple[Control, ...]:
-        return tuple(c for c in self.controls if c.framework == framework)
-
-
-_KNOWN_FRAMEWORKS: tuple[str, ...] = (
+_KNOWN_FRAMEWORKS: tuple[FrameworkId, ...] = (
     "owasp_asi",
     "csa_aicm",
     "eu_ai_act",
@@ -44,18 +26,41 @@ _KNOWN_FRAMEWORKS: tuple[str, ...] = (
 )
 
 
+def _read_yaml(resource_path: Any) -> Any:
+    return yaml.safe_load(resource_path.read_text(encoding="utf-8"))
+
+
 @lru_cache(maxsize=1)
 def load_controls() -> ControlIndex:
-    """Aggregate bundled compliance YAML files into a single index."""
-    controls: list[Control] = []
+    """Aggregate every bundled framework file and the mapping into a single index.
+
+    Tolerates missing files: if no framework is shipped yet (pre-M1) the index
+    is returned empty. Malformed files raise ``ValueError`` loudly.
+    """
     data_root = resources.files("argos_core.compliance") / "data"
-    for framework in _KNOWN_FRAMEWORKS:
-        resource = data_root / f"{framework}.yaml"
-        if not resource.is_file():
+
+    framework_metas: list[FrameworkMeta] = []
+    controls: list[Control] = []
+    for fid in _KNOWN_FRAMEWORKS:
+        path = data_root / f"{fid}.yaml"
+        if not path.is_file():
             continue
-        raw: Any = yaml.safe_load(resource.read_text(encoding="utf-8"))
-        if not isinstance(raw, list):
-            raise ValueError(f"{framework}.yaml must be a YAML list of controls")
-        for entry in raw:
-            controls.append(Control(framework=framework, **entry))
-    return ControlIndex(controls=tuple(controls))
+        raw = _read_yaml(path)
+        framework = FrameworkData.model_validate(raw)
+        if framework.meta.id != fid:
+            raise ValueError(
+                f"{fid}.yaml declares meta.id={framework.meta.id!r}; expected {fid!r}",
+            )
+        framework_metas.append(framework.meta)
+        controls.extend(framework.controls)
+
+    mapping_path = data_root / "mapping.yaml"
+    mapping = None
+    if mapping_path.is_file():
+        mapping = Mapping.model_validate(_read_yaml(mapping_path))
+
+    return ControlIndex(
+        frameworks=tuple(framework_metas),
+        controls=tuple(controls),
+        mapping=mapping,
+    )

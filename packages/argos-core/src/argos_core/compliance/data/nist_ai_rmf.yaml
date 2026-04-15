@@ -1,0 +1,280 @@
+# NIST AI Risk Management Framework 1.0 -- ARGOS snapshot.
+#
+# Structural representation of the four NIST AI RMF functions (GOVERN, MAP,
+# MEASURE, MANAGE) and their categories. ARGOS includes the categories most
+# commonly referenced in agentic-system audits; sub-categories (e.g. GV-1.1-01)
+# can be added incrementally as probes and scanner rules require them.
+#
+# Licensing: NIST publications are U.S. Government works in the public domain.
+# ARGOS summaries here are original text.
+
+meta:
+  id: nist_ai_rmf
+  name: "NIST AI Risk Management Framework 1.0"
+  version: "1.0"
+  updated: 2026-04-15
+  source_url: "https://www.nist.gov/itl/ai-risk-management-framework"
+  license: "Public domain (NIST)"
+  description: >
+    Voluntary framework that structures AI risk management in four functions:
+    GOVERN (culture/accountability), MAP (context), MEASURE (assessment) and
+    MANAGE (treatment). ARGOS maps every agentic finding to at least one sub-
+    category here, primarily to support Article 9 / 15 evidence in EU AI Act
+    audits and to align with US federal procurement guidance.
+
+controls:
+  # ----------------------------------------------------------------------
+  # GOVERN
+  # ----------------------------------------------------------------------
+  - id: GV-1
+    framework: nist_ai_rmf
+    title: "GOVERN 1 -- Policies, processes and accountability"
+    text: >
+      Establish and maintain policies, processes and clear lines of
+      accountability for trustworthy AI across the organisation.
+    section: "GOVERN"
+    source_url: "https://airc.nist.gov/AI_RMF_Knowledge_Base/Playbook/Govern"
+    tags: ["governance", "policy"]
+
+  - id: GV-1.1
+    framework: nist_ai_rmf
+    title: "Legal and regulatory requirements are understood and managed"
+    text: >
+      Legal and regulatory requirements involving AI are identified,
+      communicated and applied to AI system development, deployment and use.
+    parent_id: GV-1
+    tags: ["legal", "policy"]
+
+  - id: GV-1.4
+    framework: nist_ai_rmf
+    title: "Risk management processes are documented"
+    text: >
+      The risk management process and its outcomes are established through
+      documented policies, including roles, thresholds and acceptance.
+    parent_id: GV-1
+    tags: ["risk-management"]
+
+  - id: GV-1.5
+    framework: nist_ai_rmf
+    title: "Ongoing monitoring and review processes"
+    text: >
+      Ongoing monitoring and periodic review of the risk management process
+      and its outcomes are planned, with clear roles and responsibilities.
+    parent_id: GV-1
+    tags: ["monitoring"]
+
+  - id: GV-3
+    framework: nist_ai_rmf
+    title: "GOVERN 3 -- Workforce diversity and competence"
+    text: >
+      Workforce diversity, equity, inclusion and accessibility processes are
+      prioritised in AI system design, development and deployment.
+    section: "GOVERN"
+    tags: ["workforce", "diversity"]
+
+  - id: GV-4
+    framework: nist_ai_rmf
+    title: "GOVERN 4 -- Culture of risk-taking and accountability"
+    text: >
+      Organisational teams are committed to a culture that considers and
+      communicates AI risk.
+    section: "GOVERN"
+    tags: ["culture", "accountability"]
+
+  - id: GV-4.1
+    framework: nist_ai_rmf
+    title: "Roles and responsibilities for AI risk management are documented"
+    text: >
+      Roles, responsibilities and lines of communication for mapping,
+      measuring and managing AI risks are documented and assigned.
+    parent_id: GV-4
+    tags: ["raci"]
+
+  - id: GV-5
+    framework: nist_ai_rmf
+    title: "GOVERN 5 -- Engaging with AI actors"
+    text: >
+      Processes are in place for robust engagement with relevant AI actors
+      inside and outside the organisation.
+    section: "GOVERN"
+    tags: ["stakeholders"]
+
+  - id: GV-6
+    framework: nist_ai_rmf
+    title: "GOVERN 6 -- Addressing risks from third parties"
+    text: >
+      Policies and procedures address risks from third-party entities,
+      including data, components, models and services.
+    section: "GOVERN"
+    tags: ["supply-chain", "third-party"]
+
+  # ----------------------------------------------------------------------
+  # MAP
+  # ----------------------------------------------------------------------
+  - id: MP-1
+    framework: nist_ai_rmf
+    title: "MAP 1 -- Context is established and understood"
+    text: >
+      The context in which the AI system will be deployed is established and
+      understood, including intended use, affected populations and risks.
+    section: "MAP"
+    source_url: "https://airc.nist.gov/AI_RMF_Knowledge_Base/Playbook/Map"
+    tags: ["context", "intended-use"]
+
+  - id: MP-1.1
+    framework: nist_ai_rmf
+    title: "Intended purposes are understood"
+    text: >
+      Intended purposes, potentially beneficial uses, context-specific laws,
+      norms and expectations, and prospective settings in which the AI
+      system will be deployed are understood and documented.
+    parent_id: MP-1
+    tags: ["intended-use", "policy"]
+
+  - id: MP-2
+    framework: nist_ai_rmf
+    title: "MAP 2 -- Categorisation of the AI system"
+    text: >
+      Categorisation of the AI system is performed, including foundational
+      characteristics, deployment context, and socio-technical aspects.
+    section: "MAP"
+    tags: ["categorisation"]
+
+  - id: MP-3
+    framework: nist_ai_rmf
+    title: "MAP 3 -- AI capabilities, targeted usage, assumptions and risks"
+    text: >
+      AI capabilities, targeted usage, goals, assumptions, and expected and
+      potential risks and benefits are documented.
+    section: "MAP"
+    tags: ["capabilities", "risks"]
+
+  - id: MP-5
+    framework: nist_ai_rmf
+    title: "MAP 5 -- Impacts on individuals, groups and society"
+    text: >
+      Impacts to individuals, groups, communities, organisations and society
+      are characterised.
+    section: "MAP"
+    tags: ["impact-assessment"]
+
+  # ----------------------------------------------------------------------
+  # MEASURE
+  # ----------------------------------------------------------------------
+  - id: MS-1
+    framework: nist_ai_rmf
+    title: "MEASURE 1 -- Identify appropriate methods and metrics"
+    text: >
+      Appropriate methods and metrics are identified and applied to AI
+      system risks enumerated during the MAP function.
+    section: "MEASURE"
+    source_url: "https://airc.nist.gov/AI_RMF_Knowledge_Base/Playbook/Measure"
+    tags: ["metrics"]
+
+  - id: MS-2
+    framework: nist_ai_rmf
+    title: "MEASURE 2 -- AI systems are evaluated for trustworthy characteristics"
+    text: >
+      AI systems are evaluated for characteristics including validity,
+      reliability, robustness, accuracy, security, resilience, accountability,
+      transparency, explainability, interpretability, privacy and fairness.
+    section: "MEASURE"
+    tags: ["evaluation"]
+
+  - id: MS-2.6
+    framework: nist_ai_rmf
+    title: "Computational and information security"
+    text: >
+      The AI system is evaluated regularly for safety, resilience, and
+      security risks including prompt injection, data leakage, and misuse.
+    parent_id: MS-2
+    tags: ["security", "red-team"]
+
+  - id: MS-2.7
+    framework: nist_ai_rmf
+    title: "Robustness and reliability"
+    text: >
+      AI system security and resilience are evaluated, including performance
+      under adversarial conditions and distribution shifts.
+    parent_id: MS-2
+    tags: ["robustness", "adversarial"]
+
+  - id: MS-2.8
+    framework: nist_ai_rmf
+    title: "Accountability and transparency"
+    text: >
+      Risks associated with transparency and accountability -- including
+      human oversight, inability to audit, and opaque decision-making --
+      are examined and documented.
+    parent_id: MS-2
+    tags: ["transparency", "audit"]
+
+  - id: MS-2.11
+    framework: nist_ai_rmf
+    title: "Bias and fairness"
+    text: >
+      Fairness and bias are evaluated, including potential harms to
+      different demographic groups.
+    parent_id: MS-2
+    tags: ["bias", "fairness"]
+
+  - id: MS-4
+    framework: nist_ai_rmf
+    title: "MEASURE 4 -- Feedback is gathered and assessed"
+    text: >
+      Feedback about efficacy of measurement is gathered and assessed.
+    section: "MEASURE"
+    tags: ["feedback"]
+
+  # ----------------------------------------------------------------------
+  # MANAGE
+  # ----------------------------------------------------------------------
+  - id: MG-1
+    framework: nist_ai_rmf
+    title: "MANAGE 1 -- Risks are prioritised, responded to and managed"
+    text: >
+      AI risks based on assessments and analytical output from MAP and
+      MEASURE functions are prioritised, responded to, and managed.
+    section: "MANAGE"
+    source_url: "https://airc.nist.gov/AI_RMF_Knowledge_Base/Playbook/Manage"
+    tags: ["risk-treatment"]
+
+  - id: MG-2
+    framework: nist_ai_rmf
+    title: "MANAGE 2 -- Strategies to maximise benefits and minimise impacts"
+    text: >
+      Strategies to maximise AI benefits and minimise negative impacts are
+      planned, prepared, implemented, documented and informed by input
+      from relevant AI actors.
+    section: "MANAGE"
+    tags: ["benefits", "impact"]
+
+  - id: MG-3
+    framework: nist_ai_rmf
+    title: "MANAGE 3 -- Risks from third-party entities are addressed"
+    text: >
+      AI risks and benefits from third-party resources are regularly
+      monitored, and risk controls are applied and documented.
+    section: "MANAGE"
+    tags: ["supply-chain"]
+
+  - id: MG-4
+    framework: nist_ai_rmf
+    title: "MANAGE 4 -- Risk treatments are applied and documented"
+    text: >
+      Risk treatments -- including response and recovery, and communication
+      plans -- for identified and measured AI risks are documented and
+      monitored regularly.
+    section: "MANAGE"
+    tags: ["incident", "recovery"]
+
+  - id: MG-4.1
+    framework: nist_ai_rmf
+    title: "Post-deployment monitoring"
+    text: >
+      Post-deployment AI system monitoring plans are implemented, including
+      mechanisms for capturing and evaluating input from users and other
+      relevant AI actors, appeal and override, decommissioning and
+      incident response.
+    parent_id: MG-4
+    tags: ["monitoring", "decommissioning"]

@@ -1,0 +1,236 @@
+# Cloud Security Alliance -- AI Controls Matrix -- ARGOS snapshot.
+#
+# Subset of the ~243-control CSA AI Controls Matrix, focused on controls
+# with direct mapping relevance to agentic MCP systems. Populated
+# incrementally; pull-requests to grow the subset are welcome.
+#
+# Licensing: CSA AICM is published under a CSA open licence with attribution.
+# Summaries below are ARGOS originals and are distributed under the same
+# attribution terms.
+
+meta:
+  id: csa_aicm
+  name: "CSA AI Controls Matrix"
+  version: "1.0 (2024-10)"
+  updated: 2026-04-15
+  source_url: "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+  license: "ARGOS summaries (CSA attribution required for source text)"
+  description: >
+    Cross-cutting control framework for AI systems, designed to complement
+    the Cloud Controls Matrix. ARGOS ships a representative subset of
+    controls anchored on agentic-AI concerns: model supply chain, inference
+    security, data governance for training and retrieval, and incident
+    response specific to AI-system misbehaviour.
+
+controls:
+  # ----------------------------------------------------------------------
+  # AIS -- AI Security
+  # ----------------------------------------------------------------------
+  - id: AIS-01
+    framework: csa_aicm
+    title: "AI system identification and inventory"
+    text: >
+      Maintain an inventory of AI systems and their components, including
+      models, data sources, tools and integrations.
+    section: "AIS"
+    tags: ["inventory", "asset-management"]
+
+  - id: AIS-02
+    framework: csa_aicm
+    title: "AI threat modelling"
+    text: >
+      Perform threat modelling for AI systems, covering model-level,
+      data-level and application-level threats, including prompt injection,
+      tool misuse and model extraction.
+    section: "AIS"
+    tags: ["threat-modelling", "security"]
+
+  - id: AIS-03
+    framework: csa_aicm
+    title: "AI system security testing"
+    text: >
+      Conduct security testing of AI systems including adversarial testing
+      and red-teaming; document findings and remediation.
+    section: "AIS"
+    tags: ["security-testing", "red-team"]
+
+  - id: AIS-04
+    framework: csa_aicm
+    title: "Input validation for AI systems"
+    text: >
+      Validate, sanitise and constrain inputs to AI systems, including
+      user prompts, retrieved documents, tool outputs and inter-agent
+      messages.
+    section: "AIS"
+    tags: ["input-validation", "prompt-injection"]
+
+  - id: AIS-05
+    framework: csa_aicm
+    title: "Output validation and safety"
+    text: >
+      Apply output filters, safety classifiers and policy enforcement to
+      model outputs before they reach users or downstream systems.
+    section: "AIS"
+    tags: ["output-filtering", "safety"]
+
+  - id: AIS-06
+    framework: csa_aicm
+    title: "Secure model storage and serving"
+    text: >
+      Store, serve and protect AI models with cryptographic integrity,
+      access control and audit of inference requests.
+    section: "AIS"
+    tags: ["model-protection", "integrity"]
+
+  - id: AIS-07
+    framework: csa_aicm
+    title: "Runtime monitoring of AI systems"
+    text: >
+      Monitor AI systems at runtime for anomalies, policy violations, and
+      security incidents using structured telemetry.
+    section: "AIS"
+    tags: ["runtime", "monitoring", "otel"]
+
+  # ----------------------------------------------------------------------
+  # DSP -- Data & Supply Chain
+  # ----------------------------------------------------------------------
+  - id: DSP-01
+    framework: csa_aicm
+    title: "Data lineage for AI systems"
+    text: >
+      Track lineage of data used by AI systems, including training,
+      fine-tuning, evaluation and retrieval-augmented generation corpora.
+    section: "DSP"
+    tags: ["lineage", "provenance"]
+
+  - id: DSP-02
+    framework: csa_aicm
+    title: "Model supply-chain integrity"
+    text: >
+      Validate integrity and authenticity of pre-trained models, adapters,
+      tools and tool descriptions sourced from third parties before use.
+    section: "DSP"
+    tags: ["supply-chain", "integrity"]
+
+  - id: DSP-03
+    framework: csa_aicm
+    title: "Training-data poisoning controls"
+    text: >
+      Controls against training-data poisoning, including source
+      authentication, anomaly detection in datasets, and separation of
+      duties for dataset curation.
+    section: "DSP"
+    tags: ["poisoning", "training"]
+
+  - id: DSP-04
+    framework: csa_aicm
+    title: "Retrieval corpus integrity"
+    text: >
+      Enforce integrity controls over retrieval-augmented generation
+      corpora, including allow-lists, signed sources and content scanning.
+    section: "DSP"
+    tags: ["rag", "integrity"]
+
+  # ----------------------------------------------------------------------
+  # IAM -- Identity and Access
+  # ----------------------------------------------------------------------
+  - id: IAM-01
+    framework: csa_aicm
+    title: "Least-privilege credentials for AI agents"
+    text: >
+      AI agents operate with credentials scoped to the minimum required
+      actions, with separation between human and agent identities.
+    section: "IAM"
+    tags: ["least-privilege", "iam"]
+
+  - id: IAM-02
+    framework: csa_aicm
+    title: "Per-action authorisation for high-impact operations"
+    text: >
+      Enforce per-action authorisation for high-impact agent operations,
+      including external writes, financial transactions and data
+      exfiltration-capable calls.
+    section: "IAM"
+    tags: ["authorization", "hitl"]
+
+  - id: IAM-03
+    framework: csa_aicm
+    title: "Agent identity and attestation"
+    text: >
+      Agents and inter-agent communications are authenticated, with
+      attestation of agent identity and provenance of messages.
+    section: "IAM"
+    tags: ["identity", "multi-agent"]
+
+  # ----------------------------------------------------------------------
+  # LOG -- Logging and Audit
+  # ----------------------------------------------------------------------
+  - id: LOG-01
+    framework: csa_aicm
+    title: "Structured logging of AI interactions"
+    text: >
+      Record prompts, tool calls, outputs and context with structured,
+      tamper-evident metadata suitable for incident investigation.
+    section: "LOG"
+    tags: ["logging", "audit", "otel"]
+
+  - id: LOG-02
+    framework: csa_aicm
+    title: "Retention of AI logs"
+    text: >
+      Retain AI interaction logs for a period consistent with regulatory
+      and incident-response requirements, protecting them from tampering.
+    section: "LOG"
+    tags: ["retention"]
+
+  # ----------------------------------------------------------------------
+  # GOV -- Governance
+  # ----------------------------------------------------------------------
+  - id: GOV-01
+    framework: csa_aicm
+    title: "AI governance policies"
+    text: >
+      Establish, document and maintain AI governance policies covering
+      acceptable use, risk appetite and review cadence.
+    section: "GOV"
+    tags: ["governance", "policy"]
+
+  - id: GOV-02
+    framework: csa_aicm
+    title: "AI roles and responsibilities"
+    text: >
+      Define and document roles and responsibilities for AI system
+      ownership, risk acceptance, operations and incident response.
+    section: "GOV"
+    tags: ["raci"]
+
+  - id: GOV-03
+    framework: csa_aicm
+    title: "AI risk register"
+    text: >
+      Maintain a risk register for AI systems with severity, likelihood
+      and mitigation status.
+    section: "GOV"
+    tags: ["risk-register"]
+
+  # ----------------------------------------------------------------------
+  # IRP -- Incident Response
+  # ----------------------------------------------------------------------
+  - id: IRP-01
+    framework: csa_aicm
+    title: "AI-specific incident response"
+    text: >
+      Incident response plans cover AI-specific incident categories
+      (jailbreak success, data exfiltration by agent, goal hijack,
+      cascading hallucination) with documented playbooks.
+    section: "IRP"
+    tags: ["incident", "response"]
+
+  - id: IRP-02
+    framework: csa_aicm
+    title: "AI incident notification"
+    text: >
+      Procedures exist to notify affected parties and regulators of AI
+      incidents per applicable legal and contractual obligations.
+    section: "IRP"
+    tags: ["notification"]

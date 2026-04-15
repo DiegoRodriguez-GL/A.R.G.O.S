@@ -1,0 +1,230 @@
+# ARGOS cross-framework mapping. OWASP ASI is the graph hub: every ASI
+# threat links to controls in CSA AICM, EU AI Act, NIST AI RMF and ISO 42001.
+#
+# Every entry has a rationale. Confidence is 'high' when the mapping is
+# explicit in the source frameworks, 'medium' when it is a reasonable
+# interpretation, 'low' when it is aspirational and deserves reviewer
+# scrutiny before use in an audit report.
+
+meta:
+  version: "1.0"
+  updated: 2026-04-15
+  hub: owasp_asi
+  description: >
+    Normative cross-reference used by argos-reporter to produce the
+    compliance matrix in every audit report. Auditors can trace any finding
+    from its ASI category to the applicable obligations in CSA AICM, EU AI
+    Act, NIST AI RMF and ISO/IEC 42001.
+
+entries:
+  # ----------------------------------------------------------------------
+  # ASI01 -- Memory Poisoning
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI01"
+    targets:
+      - "csa_aicm:AIS-04"
+      - "csa_aicm:DSP-03"
+      - "csa_aicm:DSP-04"
+      - "nist_ai_rmf:MS-2.6"
+      - "nist_ai_rmf:MS-2.7"
+      - "eu_ai_act:ART-10"
+      - "eu_ai_act:ART-15"
+      - "iso_42001:A.7.2"
+      - "iso_42001:A.7.5"
+    relationship: mitigates
+    rationale: >
+      Memory poisoning defences are input-validation (AIS-04), retrieval
+      corpus integrity (DSP-04), training-data poisoning controls (DSP-03),
+      adversarial robustness testing (MS-2.6/2.7), Article 10 data-governance
+      obligations and ISO data provenance (A.7.2/A.7.5).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI02 -- Tool Misuse
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI02"
+    targets:
+      - "csa_aicm:AIS-04"
+      - "csa_aicm:IAM-01"
+      - "csa_aicm:IAM-02"
+      - "nist_ai_rmf:MS-2.6"
+      - "nist_ai_rmf:MG-4"
+      - "eu_ai_act:ART-15"
+      - "iso_42001:A.6.2.4"
+    relationship: mitigates
+    rationale: >
+      Tool misuse is addressed by input validation on tool arguments
+      (AIS-04), least-privilege credentials (IAM-01), per-action approval
+      for high-impact calls (IAM-02), security evaluation (MS-2.6), risk
+      treatment (MG-4), cybersecurity of high-risk systems (Art. 15), and
+      pre-deployment verification/validation (A.6.2.4).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI03 -- Privilege Compromise
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI03"
+    targets:
+      - "csa_aicm:IAM-01"
+      - "csa_aicm:IAM-02"
+      - "csa_aicm:IAM-03"
+      - "nist_ai_rmf:GV-1.1"
+      - "nist_ai_rmf:MG-3"
+      - "eu_ai_act:ART-15"
+      - "iso_42001:A.10.2"
+      - "iso_42001:A.10.3"
+    relationship: mitigates
+    rationale: >
+      Privilege compromise maps to least-privilege (IAM-01), per-action
+      authorisation (IAM-02), agent identity attestation (IAM-03), legal
+      requirements (GV-1.1), third-party risk management (MG-3), Article 15
+      cybersecurity, and ISO third-party allocation (A.10.2/10.3).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI04 -- Resource Overload
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI04"
+    targets:
+      - "csa_aicm:AIS-07"
+      - "nist_ai_rmf:MS-2.7"
+      - "nist_ai_rmf:MG-4.1"
+      - "eu_ai_act:ART-15"
+      - "iso_42001:A.6.2.6"
+    relationship: mitigates
+    rationale: >
+      Resource-overload attacks require runtime monitoring (AIS-07),
+      robustness testing (MS-2.7), post-deployment monitoring (MG-4.1),
+      Article 15 robustness, and operational monitoring under ISO (A.6.2.6).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI05 -- Cascading Hallucination
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI05"
+    targets:
+      - "csa_aicm:AIS-05"
+      - "csa_aicm:DSP-01"
+      - "nist_ai_rmf:MS-2"
+      - "nist_ai_rmf:MS-4"
+      - "eu_ai_act:ART-13"
+      - "eu_ai_act:ART-15"
+      - "iso_42001:A.6.2.4"
+    relationship: mitigates
+    rationale: >
+      Cascading hallucinations are limited by output filters (AIS-05),
+      data lineage (DSP-01), trustworthiness evaluation (MS-2), feedback
+      (MS-4), transparency obligations (Art. 13), robustness (Art. 15),
+      and pre-deployment verification (A.6.2.4).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI06 -- Intent Breaking / Goal Manipulation
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI06"
+    targets:
+      - "csa_aicm:AIS-02"
+      - "csa_aicm:AIS-03"
+      - "csa_aicm:AIS-04"
+      - "csa_aicm:DSP-02"
+      - "nist_ai_rmf:MP-1.1"
+      - "nist_ai_rmf:MS-2.6"
+      - "eu_ai_act:ART-9"
+      - "eu_ai_act:ART-15"
+      - "iso_42001:A.5.2"
+      - "iso_42001:A.9.4"
+    relationship: mitigates
+    rationale: >
+      Goal hijack via tool descriptions is covered by threat modelling
+      (AIS-02), red-teaming (AIS-03), input validation (AIS-04), supply-chain
+      integrity for tools (DSP-02), intended-use documentation (MP-1.1 and
+      A.9.4), risk management under Article 9, cybersecurity under
+      Article 15, and impact assessment process (A.5.2).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI07 -- Misaligned and Deceptive Behaviours
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI07"
+    targets:
+      - "csa_aicm:AIS-03"
+      - "csa_aicm:AIS-05"
+      - "csa_aicm:LOG-01"
+      - "nist_ai_rmf:MS-2.8"
+      - "nist_ai_rmf:MS-2.11"
+      - "eu_ai_act:ART-13"
+      - "eu_ai_act:ART-14"
+      - "iso_42001:A.8.2"
+    relationship: mitigates
+    rationale: >
+      Deceptive behaviour is caught by red-teaming (AIS-03), output review
+      (AIS-05), auditable logging (LOG-01), transparency and accountability
+      evaluation (MS-2.8), bias/fairness evaluation (MS-2.11), Articles 13
+      (transparency) and 14 (human oversight), and ISO user documentation
+      (A.8.2).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI08 -- Repudiation / Untraceability
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI08"
+    targets:
+      - "csa_aicm:LOG-01"
+      - "csa_aicm:LOG-02"
+      - "csa_aicm:AIS-07"
+      - "nist_ai_rmf:MS-2.8"
+      - "nist_ai_rmf:MG-4.1"
+      - "eu_ai_act:ART-12"
+      - "eu_ai_act:ART-11"
+      - "iso_42001:A.6.2.8"
+    relationship: mitigates
+    rationale: >
+      Repudiation is prevented by structured logging (LOG-01), retention
+      (LOG-02), runtime monitoring (AIS-07), transparency/audit evaluation
+      (MS-2.8), post-deployment monitoring (MG-4.1), Article 12
+      record-keeping, Article 11 technical documentation, and ISO event
+      logs (A.6.2.8).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI09 -- Identity Spoofing
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI09"
+    targets:
+      - "csa_aicm:IAM-03"
+      - "csa_aicm:IAM-01"
+      - "csa_aicm:LOG-01"
+      - "nist_ai_rmf:GV-6"
+      - "nist_ai_rmf:MG-3"
+      - "eu_ai_act:ART-15"
+      - "iso_42001:A.6.2.2"
+      - "iso_42001:A.10.3"
+    relationship: mitigates
+    rationale: >
+      Identity spoofing is countered by agent authentication and attestation
+      (IAM-03), least-privilege identities (IAM-01), audit logs (LOG-01),
+      third-party risk (GV-6 / MG-3), Article 15 cybersecurity, and ISO
+      requirements and supplier obligations (A.6.2.2 / A.10.3).
+    confidence: high
+
+  # ----------------------------------------------------------------------
+  # ASI10 -- Overwhelming HITL
+  # ----------------------------------------------------------------------
+  - source: "owasp_asi:ASI10"
+    targets:
+      - "csa_aicm:IAM-02"
+      - "csa_aicm:GOV-01"
+      - "csa_aicm:GOV-02"
+      - "nist_ai_rmf:GV-1"
+      - "nist_ai_rmf:MS-2.8"
+      - "eu_ai_act:ART-14"
+      - "iso_42001:A.8.2"
+      - "iso_42001:A.9.2"
+    relationship: mitigates
+    rationale: >
+      HITL overwhelm is a UX and governance issue. Per-action auth (IAM-02)
+      is defensible only if approvals remain meaningful; governance and
+      RACI (GOV-01/02, GV-1), transparency evaluation (MS-2.8), Article 14
+      human-oversight design, and responsible-use processes (A.8.2, A.9.2)
+      all reinforce this.
+    confidence: high
