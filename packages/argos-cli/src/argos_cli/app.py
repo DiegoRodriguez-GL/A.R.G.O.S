@@ -9,10 +9,13 @@ from rich.panel import Panel
 from rich.text import Text
 
 from argos_cli import __version__
+from argos_cli.commands import compliance as compliance_cmds
+from argos_cli.commands import rules as rules_cmds
 from argos_cli.commands.proxy import proxy
 from argos_cli.commands.redteam import redteam
 from argos_cli.commands.report import report
 from argos_cli.commands.scan import scan
+from argos_cli.commands.status import status
 from argos_cli.console import get_console
 
 app = typer.Typer(
@@ -28,10 +31,16 @@ app = typer.Typer(
     pretty_exceptions_show_locals=False,
 )
 
-app.command("scan")(scan)
-app.command("redteam")(redteam)
-app.command("proxy")(proxy)
-app.command("report")(report)
+# Single-verb commands.
+app.command("status", help="One-screen summary of the ARGOS install.")(status)
+app.command("scan", help="Statically scan an MCP configuration.")(scan)
+app.command("redteam", help="Run red-teaming probes (Module 4).")(redteam)
+app.command("proxy", help="Run the MCP audit proxy (Module 5).")(proxy)
+app.command("report", help="Render findings into HTML or JSONL (Module 6).")(report)
+
+# Grouped commands.
+app.add_typer(rules_cmds.app, name="rules")
+app.add_typer(compliance_cmds.app, name="compliance")
 
 
 def _banner() -> Panel:
