@@ -35,7 +35,7 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: steps.guard.outputs.skip == 'false' && hashFiles('apps/landing/package-lock.json') != ''
         with:
           node-version: "20"
