@@ -1,0 +1,8 @@
+/*
+ * Reserved for Module 6.
+ *
+ * Reports rendered in Module 0 embed the design tokens inline via
+ * `_tokens.css.j2` so they stay self-contained. This stylesheet will carry
+ * the component-level rules (finding rows, compliance matrix, filter chips)
+ * introduced by the reporter package starting with Module 6.
+ */

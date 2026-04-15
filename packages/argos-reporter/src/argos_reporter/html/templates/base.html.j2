@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="{{ lang | default('en') }}" data-theme="{{ theme | default('light') }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="generator" content="ARGOS v{{ generator_version | default('0.0.0') }}" />
+    <title>{% block title %}ARGOS Report{% endblock %}</title>
+
+    <style>
+      {% include "_reset.css.j2" %}
+      {% include "_tokens.css.j2" %}
+      {% include "_base.css.j2" %}
+      {% block head_styles %}{% endblock %}
+    </style>
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body>
+    <header class="argos-header">
+      <div class="argos-container argos-row argos-between">
+        <div class="argos-brand" aria-label="ARGOS">
+          <span class="argos-brand-mark" aria-hidden="true"></span>
+          <span class="argos-brand-text">ARGOS</span>
+        </div>
+        <div class="argos-header-meta">
+          {% block header_meta %}
+            Generated {{ generated_at | default('') }}
+          {% endblock %}
+        </div>
+      </div>
+    </header>
+
+    <main class="argos-container argos-main">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="argos-footer">
+      <div class="argos-container argos-row argos-between">
+        <span>ARGOS v{{ generator_version | default('0.0.0') }}</span>
+        <span>AGPL-3.0-or-later &middot; open source</span>
+      </div>
+    </footer>
+
+    {% block body_scripts %}{% endblock %}
+  </body>
+</html>

@@ -1,0 +1,11 @@
+# ARGOS configuration. Copy to ./argos.yaml or ~/.config/argos/argos.yaml
+# (%APPDATA%/argos/argos.yaml on Windows). Command-line flags and ARGOS_*
+# environment variables take precedence.
+
+no_color: false
+
+# OpenTelemetry OTLP endpoint for traces. Leave unset to keep telemetry local.
+otel_endpoint: null
+
+# Extra directories scanned by the plugin loader (in addition to entry points).
+plugin_paths: []

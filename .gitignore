@@ -1,0 +1,208 @@
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# =============================================================================
+# Virtual environments
+# =============================================================================
+.venv/
+venv/
+env/
+ENV/
+.env/
+.python-version.local
+
+# =============================================================================
+# uv
+# =============================================================================
+.uv/
+uv-cache/
+# Note: uv.lock IS committed for reproducibility (CI uses --frozen).
+
+# =============================================================================
+# Testing / coverage / benchmarking
+# =============================================================================
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+.benchmarks/
+
+# =============================================================================
+# Type checking / linting caches
+# =============================================================================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+.pylint.d/
+.pyright/
+
+# =============================================================================
+# IDEs / editors / local tooling
+# =============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*~
+*.bak
+*.orig
+*.rej
+.project
+.pydevproject
+.spyderproject
+.spyproject
+.ropeproject
+.sublime-project
+.sublime-workspace
+
+# =============================================================================
+# AI assistant configs / chat history (NEVER commit)
+# =============================================================================
+.claude/
+.cursor/
+.aider*
+.continue/
+.windsurf/
+.codeium/
+.tabnine/
+.copilot/
+ai_history/
+.chatgpt/
+.openai/
+
+# =============================================================================
+# OS detritus
+# =============================================================================
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.fuse_hidden*
+.nfs*
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# =============================================================================
+# Node (apps/landing, apps/docs)
+# =============================================================================
+node_modules/
+.astro/
+.next/
+.nuxt/
+.parcel-cache/
+.vercel/
+.turbo/
+.npm/
+.yarn/
+pnpm-lock.yaml.backup
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =============================================================================
+# Build outputs
+# =============================================================================
+/site/
+/public/dist/
+/apps/landing/dist/
+/apps/docs/site/
+.docusaurus/
+docs/_build/
+_build/
+
+# =============================================================================
+# Logs / runtime artefacts
+# =============================================================================
+*.log
+logs/
+*.prof
+*.lprof
+.profile_default/
+
+# =============================================================================
+# Local databases (proxy persistence during dev)
+# =============================================================================
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+
+# =============================================================================
+# OpenTelemetry dumps
+# =============================================================================
+*.otel.json
+traces/
+
+# =============================================================================
+# Local scratch
+# =============================================================================
+scratch/
+tmp/
+.tmp/
+.scratch/
+
+# =============================================================================
+# Secrets (defence in depth -- pre-commit also blocks via detect-private-key)
+# =============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets/
+.secrets/
+credentials.json
+.credentials/
+.netrc
+.npmrc
+
+# =============================================================================
+# Direnv / asdf
+# =============================================================================
+.envrc
