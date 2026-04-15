@@ -52,8 +52,14 @@ def load(path: Path) -> MCPConfig:
     return MCPConfig(path=path.resolve(), dialect=dialect, servers=servers, raw=raw)
 
 
+_BOM = "\ufeff"
+
+
 def _read_any(path: Path) -> Any:
-    text = path.read_text(encoding="utf-8")
+    # ``utf-8-sig`` strips a leading BOM; falls back to plain utf-8 if absent.
+    text = path.read_text(encoding="utf-8-sig")
+    if text.startswith(_BOM):
+        text = text.lstrip(_BOM)
     suffix = path.suffix.lower()
     try:
         if suffix in _JSON_SUFFIXES:

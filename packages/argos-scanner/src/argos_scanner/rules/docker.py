@@ -49,7 +49,8 @@ class DockerPrivilegedRule(BaseRule):
     ) -> Iterable[Finding]:
         if not _is_docker(server):
             return ()
-        if "--privileged" not in server.args:
+        privileged = any(a == "--privileged" or a.startswith("--privileged=") for a in server.args)
+        if not privileged:
             return ()
         return (
             self.build_finding(
