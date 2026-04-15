@@ -1,13 +1,9 @@
 name: docs
 
+# Manual-only until Module 8 lands apps/landing (Astro) and apps/docs (MkDocs).
+# Once those are populated, add a push trigger with path filters limited to
+# apps/docs/** and apps/landing/**.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/docs/**"
-      - "apps/landing/**"
-      - "packages/*/src/**"
-      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
@@ -26,29 +22,40 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      # Landing (Astro)
+      - name: Guard -- require at least one site to build
+        id: guard
+        run: |
+          if [ ! -f apps/landing/package.json ] && [ ! -f apps/docs/mkdocs.yml ]; then
+            echo "::notice::Nothing to build (landing and docs not yet populated)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip == 'false' && hashFiles('apps/landing/package-lock.json') != ''
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: apps/landing/package-lock.json
-        if: hashFiles('apps/landing/package-lock.json') != ''
 
-      - name: Build landing
-        if: hashFiles('apps/landing/package.json') != ''
+      - name: Build landing (Astro)
+        if: steps.guard.outputs.skip == 'false' && hashFiles('apps/landing/package.json') != ''
         working-directory: apps/landing
         run: |
           npm ci
           npm run build
 
-      # Docs (MkDocs)
       - uses: actions/setup-python@v5
+        if: steps.guard.outputs.skip == 'false' && hashFiles('apps/docs/mkdocs.yml') != ''
         with:
           python-version: "3.11"
 
-      - name: Build docs
-        if: hashFiles('apps/docs/mkdocs.yml') != ''
+      - name: Build docs (MkDocs)
+        if: steps.guard.outputs.skip == 'false' && hashFiles('apps/docs/mkdocs.yml') != ''
         working-directory: apps/docs
         run: |
           python -m pip install --upgrade pip
@@ -56,13 +63,19 @@ jobs:
           mkdocs build --strict --site-dir ../../dist-site/docs
 
       - name: Assemble site
+        if: steps.guard.outputs.skip == 'false'
         run: |
           mkdir -p dist-site
           if [ -d apps/landing/dist ]; then
             cp -R apps/landing/dist/. dist-site/
           fi
+          if [ ! -f dist-site/index.html ] && [ ! -d dist-site/docs ]; then
+            echo "::error::dist-site is empty; refusing to deploy a blank Pages site."
+            exit 1
+          fi
 
       - uses: actions/upload-pages-artifact@v3
+        if: steps.guard.outputs.skip == 'false'
         with:
           path: dist-site
 
