@@ -1,0 +1,207 @@
+# Regulation (EU) 2024/1689 -- AI Act -- ARGOS snapshot.
+#
+# ARGOS represents the articles most relevant to agentic AI auditing:
+# Chapter III Section 2 (requirements for high-risk AI systems), relevant
+# Annex III categories, and Annex IV technical documentation items.
+#
+# Licensing: EU legal texts are open (Decision 2011/833/EU). ARGOS summaries
+# are original but not a substitute for the normative text; auditors MUST
+# reference the Official Journal version.
+
+meta:
+  id: eu_ai_act
+  name: "Regulation (EU) 2024/1689 -- AI Act"
+  version: "OJ L 2024/1689, 12 July 2024"
+  updated: 2026-04-15
+  source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+  license: "ARGOS summaries; original text under EU open-data licence"
+  description: >
+    Horizontal EU regulation establishing harmonised rules on AI. ARGOS
+    focuses on the obligations that translate to concrete technical evidence
+    for agentic systems: risk management (Art. 9), data governance (Art. 10),
+    technical documentation (Art. 11 and Annex IV), record-keeping (Art. 12),
+    transparency (Art. 13), human oversight (Art. 14) and accuracy, robustness
+    and cybersecurity (Art. 15).
+
+controls:
+  # ----------------------------------------------------------------------
+  # Chapter III -- requirements for high-risk AI systems
+  # ----------------------------------------------------------------------
+  - id: ART-9
+    framework: eu_ai_act
+    title: "Article 9 -- Risk management system"
+    text: >
+      Providers of high-risk AI systems shall establish, implement, document
+      and maintain a risk management system as a continuous iterative
+      process throughout the entire lifecycle, including identification,
+      estimation, evaluation of risks and adoption of risk management
+      measures.
+    section: "Chapter III Section 2"
+    source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_9"
+    tags: ["risk-management", "lifecycle"]
+
+  - id: ART-10
+    framework: eu_ai_act
+    title: "Article 10 -- Data and data governance"
+    text: >
+      Training, validation and testing datasets shall be subject to data
+      governance and management practices appropriate for their intended
+      purpose, including relevance, representativeness, completeness,
+      accuracy and examination for biases.
+    section: "Chapter III Section 2"
+    source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_10"
+    tags: ["data-governance", "bias"]
+
+  - id: ART-11
+    framework: eu_ai_act
+    title: "Article 11 -- Technical documentation"
+    text: >
+      Technical documentation of a high-risk AI system is drawn up before
+      the system is placed on the market or put into service and kept
+      up-to-date. Minimum content is specified in Annex IV.
+    section: "Chapter III Section 2"
+    source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_11"
+    tags: ["technical-documentation"]
+
+  - id: ART-12
+    framework: eu_ai_act
+    title: "Article 12 -- Record-keeping"
+    text: >
+      High-risk AI systems shall technically allow for the automatic
+      recording of events (logs) over their lifetime, ensuring traceability
+      sufficient for post-market monitoring.
+    section: "Chapter III Section 2"
+    source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_12"
+    tags: ["logging", "traceability"]
+
+  - id: ART-13
+    framework: eu_ai_act
+    title: "Article 13 -- Transparency and provision of information to deployers"
+    text: >
+      High-risk AI systems shall be designed and developed to ensure that
+      their operation is sufficiently transparent to enable deployers to
+      interpret the system's output and use it appropriately.
+    section: "Chapter III Section 2"
+    source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_13"
+    tags: ["transparency"]
+
+  - id: ART-14
+    framework: eu_ai_act
+    title: "Article 14 -- Human oversight"
+    text: >
+      High-risk AI systems shall be designed to be effectively overseen by
+      natural persons during use, including the ability to intervene and
+      interrupt the system or override outputs.
+    section: "Chapter III Section 2"
+    source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_14"
+    tags: ["hitl", "oversight"]
+
+  - id: ART-15
+    framework: eu_ai_act
+    title: "Article 15 -- Accuracy, robustness and cybersecurity"
+    text: >
+      High-risk AI systems shall be designed and developed to achieve
+      appropriate levels of accuracy, robustness and cybersecurity, and to
+      perform consistently in those respects throughout their lifecycle.
+      They shall be resilient to errors, faults, inconsistencies, attempts
+      by third parties to alter their use or performance, and adversarial
+      examples or data poisoning.
+    section: "Chapter III Section 2"
+    source_url: "https://eur-lex.europa.eu/eli/reg/2024/1689/oj#art_15"
+    tags: ["robustness", "security", "adversarial"]
+
+  # ----------------------------------------------------------------------
+  # Annex III -- high-risk use cases (subset relevant to agents)
+  # ----------------------------------------------------------------------
+  - id: ANNEX-III-1
+    framework: eu_ai_act
+    title: "Annex III #1 -- Biometrics"
+    text: >
+      Biometric categorisation, emotion recognition and remote biometric
+      identification systems (subject to the prohibitions in Article 5).
+    section: "Annex III"
+    tags: ["biometrics", "high-risk"]
+
+  - id: ANNEX-III-5
+    framework: eu_ai_act
+    title: "Annex III #5 -- Access to essential private and public services"
+    text: >
+      AI systems intended to be used to evaluate eligibility for essential
+      private services or essential public services (credit scoring,
+      benefits eligibility, emergency dispatch, health risk).
+    section: "Annex III"
+    tags: ["essential-services", "high-risk"]
+
+  - id: ANNEX-III-6
+    framework: eu_ai_act
+    title: "Annex III #6 -- Law enforcement"
+    text: >
+      AI systems intended to be used by law-enforcement authorities in
+      contexts affecting fundamental rights.
+    section: "Annex III"
+    tags: ["law-enforcement", "high-risk"]
+
+  - id: ANNEX-III-8
+    framework: eu_ai_act
+    title: "Annex III #8 -- Administration of justice and democratic processes"
+    text: >
+      AI systems intended to assist judicial authorities in researching and
+      interpreting facts and the law and in applying the law, or to
+      influence democratic processes.
+    section: "Annex III"
+    tags: ["justice", "democracy", "high-risk"]
+
+  # ----------------------------------------------------------------------
+  # Annex IV -- technical documentation items
+  # ----------------------------------------------------------------------
+  - id: ANNEX-IV-1
+    framework: eu_ai_act
+    title: "Annex IV(1) -- General description of the AI system"
+    text: >
+      Intended purpose, name and version; description of foreseeable misuse;
+      hardware/software on which the AI system is intended to operate;
+      description of the interactions with other systems.
+    section: "Annex IV"
+    tags: ["documentation", "description"]
+
+  - id: ANNEX-IV-2
+    framework: eu_ai_act
+    title: "Annex IV(2) -- Detailed description of the elements of the AI system"
+    text: >
+      Methods and steps of development, including pre-trained systems and
+      tools used, design specifications, main classification choices,
+      system architecture, data requirements, human oversight measures,
+      and validation and testing procedures.
+    section: "Annex IV"
+    tags: ["design", "architecture"]
+
+  - id: ANNEX-IV-3
+    framework: eu_ai_act
+    title: "Annex IV(3) -- Detailed information on monitoring, functioning and control"
+    text: >
+      Capabilities and limitations in performance, including degrees of
+      accuracy for specific persons or groups, expected unintended outcomes,
+      foreseeable misuse, risks to fundamental rights, and human oversight
+      measures and technical measures to facilitate interpretation.
+    section: "Annex IV"
+    tags: ["monitoring", "limitations"]
+
+  - id: ANNEX-IV-5
+    framework: eu_ai_act
+    title: "Annex IV(5) -- Description of the cybersecurity measures"
+    text: >
+      A description of the cybersecurity measures put in place to protect
+      the AI system, including measures regarding adversarial examples,
+      model evasion, data poisoning and model extraction.
+    section: "Annex IV"
+    tags: ["cybersecurity", "adversarial"]
+
+  - id: ANNEX-IV-8
+    framework: eu_ai_act
+    title: "Annex IV(8) -- Post-market monitoring plan"
+    text: >
+      A detailed description of the system in place to evaluate the AI
+      system performance in the post-market phase, including the post-market
+      monitoring plan referred to in Article 72.
+    section: "Annex IV"
+    tags: ["post-market", "monitoring"]

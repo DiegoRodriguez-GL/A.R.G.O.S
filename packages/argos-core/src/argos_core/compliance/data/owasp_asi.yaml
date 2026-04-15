@@ -1,0 +1,298 @@
+# OWASP Agentic Security Initiative -- ARGOS snapshot.
+#
+# Descriptions are faithful ARGOS summaries of the public OWASP ASI threat
+# taxonomy for agentic AI systems. For normative wording refer to `source_url`
+# under `meta` and per-control `source_url`.
+#
+# Licensing: OWASP content is published under CC BY-SA 4.0. ARGOS summaries
+# below are derivative works distributed under the same license.
+
+meta:
+  id: owasp_asi
+  name: "OWASP Agentic Security Initiative -- Agentic AI Threats"
+  version: "1.0"
+  updated: 2026-04-15
+  source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+  license: "CC BY-SA 4.0 (original text); ARGOS summaries under CC BY-SA 4.0"
+  description: >
+    Ten-category threat taxonomy specific to agentic AI systems. ARGOS uses
+    this as the hub of its compliance mapping graph: every finding produced by
+    any ARGOS module is categorised here first, then cross-referenced into
+    CSA AICM, EU AI Act, NIST AI RMF and ISO/IEC 42001.
+  notes: >
+    Sub-controls (e.g. ASI01-01) are ARGOS operational refinements used to
+    anchor scanner rules and red-team probes. They are not part of the OWASP
+    source taxonomy and are marked accordingly by their parent_id.
+
+controls:
+  # ----------------------------------------------------------------------
+  # ASI01 -- Memory Poisoning
+  # ----------------------------------------------------------------------
+  - id: ASI01
+    framework: owasp_asi
+    title: "Memory Poisoning"
+    text: >
+      Malicious or accidental manipulation of an agent's short-term or
+      persistent memory such that subsequent decisions are influenced by
+      injected content. Scope includes conversation buffers, vector stores,
+      tool outputs written to memory, and RAG document indices.
+    section: "Threat T1 / ASI01"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["memory", "persistence", "integrity"]
+
+  - id: ASI01-01
+    framework: owasp_asi
+    title: "Single-shot prompt injection via tool output"
+    text: >
+      An upstream tool returns content containing imperative phrasing
+      ("forget previous", "you are now") that the agent treats as trusted
+      instructions in the next reasoning step.
+    parent_id: ASI01
+    tags: ["prompt-injection", "tool-output", "runtime"]
+
+  - id: ASI01-02
+    framework: owasp_asi
+    title: "Progressive memory poisoning across turns"
+    text: >
+      Attacker builds up misleading state across multiple turns so that
+      eventually the agent relies on adversary-controlled facts to take a
+      consequential action.
+    parent_id: ASI01
+    tags: ["multi-turn", "persistence"]
+
+  - id: ASI01-03
+    framework: owasp_asi
+    title: "RAG document poisoning"
+    text: >
+      Adversary ingests a document into the retrieval corpus that carries
+      instructions or biased content; retrieval at inference time then
+      delivers the payload to the model context.
+    parent_id: ASI01
+    tags: ["rag", "supply-chain"]
+
+  # ----------------------------------------------------------------------
+  # ASI02 -- Tool Misuse
+  # ----------------------------------------------------------------------
+  - id: ASI02
+    framework: owasp_asi
+    title: "Tool Misuse"
+    text: >
+      The agent invokes legitimate tools in unintended or excessive ways,
+      whether because a tool description is ambiguous, arguments are
+      manipulated by upstream input, or the tool's capability surface
+      exceeds what the task requires.
+    section: "Threat T2 / ASI02"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["tools", "least-privilege"]
+
+  - id: ASI02-01
+    framework: owasp_asi
+    title: "Argument smuggling through user input"
+    text: >
+      User-supplied fields propagate unsanitised into tool arguments, turning
+      a benign tool into an arbitrary-action primitive.
+    parent_id: ASI02
+    tags: ["injection", "input-validation"]
+
+  - id: ASI02-02
+    framework: owasp_asi
+    title: "Tool chaining abuse"
+    text: >
+      The agent composes an attack-relevant sequence from individually
+      benign tool calls (e.g. read file, encode to base64, post to webhook).
+    parent_id: ASI02
+    tags: ["composition", "lateral-movement"]
+
+  # ----------------------------------------------------------------------
+  # ASI03 -- Privilege Compromise
+  # ----------------------------------------------------------------------
+  - id: ASI03
+    framework: owasp_asi
+    title: "Privilege Compromise"
+    text: >
+      Exploitation of over-broad credentials, stolen tokens, or trust
+      boundaries between agent components to perform actions outside the
+      user's intended scope.
+    section: "Threat T3 / ASI03"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["iam", "credentials", "scope"]
+
+  - id: ASI03-01
+    framework: owasp_asi
+    title: "Over-scoped service account"
+    text: >
+      The credentials available to the agent grant access to data or
+      actions not required for the current task, amplifying the blast
+      radius of any other compromise.
+    parent_id: ASI03
+    tags: ["least-privilege"]
+
+  - id: ASI03-02
+    framework: owasp_asi
+    title: "Token replay across contexts"
+    text: >
+      A token acquired for one task (or one user) is reused for a different
+      task or principal, bypassing per-request authorisation.
+    parent_id: ASI03
+    tags: ["auth", "replay"]
+
+  # ----------------------------------------------------------------------
+  # ASI04 -- Resource Overload
+  # ----------------------------------------------------------------------
+  - id: ASI04
+    framework: owasp_asi
+    title: "Resource Overload"
+    text: >
+      Deliberate or incidental exhaustion of agent capacity: token budgets,
+      tool rate limits, memory, downstream system load. Leads to denial of
+      service, cost blow-up, or forced fallback to unsafe defaults.
+    section: "Threat T4 / ASI04"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["availability", "cost", "rate-limit"]
+
+  - id: ASI04-01
+    framework: owasp_asi
+    title: "Cost amplification via recursive tool loops"
+    text: >
+      A tool output prompts a chain of further calls with no effective
+      termination condition, draining budgets or rate limits.
+    parent_id: ASI04
+    tags: ["cost", "loops"]
+
+  # ----------------------------------------------------------------------
+  # ASI05 -- Cascading Hallucination Attacks
+  # ----------------------------------------------------------------------
+  - id: ASI05
+    framework: owasp_asi
+    title: "Cascading Hallucination Attacks"
+    text: >
+      Model fabrications are stored, shared or re-ingested by other agents
+      or systems, so later decisions are based on fabricated artefacts that
+      gain apparent authority through propagation.
+    section: "Threat T5 / ASI05"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["hallucination", "propagation", "integrity"]
+
+  - id: ASI05-01
+    framework: owasp_asi
+    title: "Hallucinated identifier (library, CVE, endpoint)"
+    text: >
+      The model emits a plausible-but-false artefact identifier that
+      downstream code or humans use as ground truth.
+    parent_id: ASI05
+    tags: ["supply-chain"]
+
+  # ----------------------------------------------------------------------
+  # ASI06 -- Intent Breaking and Goal Manipulation
+  # ----------------------------------------------------------------------
+  - id: ASI06
+    framework: owasp_asi
+    title: "Intent Breaking and Goal Manipulation"
+    text: >
+      An external party redirects or subverts the user's original goal,
+      causing the agent to act against its principal's intent while still
+      appearing to follow instructions.
+    section: "Threat T6 / ASI06"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["goal-hijack", "intent", "alignment"]
+
+  - id: ASI06-01
+    framework: owasp_asi
+    title: "Goal hijack via tool description"
+    text: >
+      An adversary-controlled tool description contains instructions that
+      override the user's intent (classic 'Agentic Prompt Injection').
+    parent_id: ASI06
+    tags: ["prompt-injection", "tool-def"]
+
+  # ----------------------------------------------------------------------
+  # ASI07 -- Misaligned and Deceptive Behaviours
+  # ----------------------------------------------------------------------
+  - id: ASI07
+    framework: owasp_asi
+    title: "Misaligned and Deceptive Behaviours"
+    text: >
+      The agent produces explanations that do not reflect its actual
+      reasoning or tool usage, or appears to comply with safety policies
+      while routing around them.
+    section: "Threat T7 / ASI07"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["alignment", "deception", "transparency"]
+
+  - id: ASI07-01
+    framework: owasp_asi
+    title: "Plausible-but-false justification"
+    text: >
+      The agent provides a rationale that would pass human review but that
+      does not match the tool trace or the actual action taken.
+    parent_id: ASI07
+    tags: ["explainability"]
+
+  # ----------------------------------------------------------------------
+  # ASI08 -- Repudiation and Untraceability
+  # ----------------------------------------------------------------------
+  - id: ASI08
+    framework: owasp_asi
+    title: "Repudiation and Untraceability"
+    text: >
+      Lack of verifiable records tying an agent action to its input,
+      context, and responsible principal, making post-incident investigation
+      or accountability impossible.
+    section: "Threat T8 / ASI08"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["audit", "logging", "forensics"]
+
+  - id: ASI08-01
+    framework: owasp_asi
+    title: "Missing structured audit trail"
+    text: >
+      Tool calls, prompts and model outputs are not persisted with
+      tamper-evident metadata, preventing after-the-fact reconstruction.
+    parent_id: ASI08
+    tags: ["logging", "otel"]
+
+  # ----------------------------------------------------------------------
+  # ASI09 -- Identity Spoofing and Impersonation
+  # ----------------------------------------------------------------------
+  - id: ASI09
+    framework: owasp_asi
+    title: "Identity Spoofing and Impersonation"
+    text: >
+      An attacker presents content that appears to come from a trusted
+      principal (human user, another agent, an authoritative system) to
+      induce the agent into privileged actions or deliver tainted input.
+    section: "Threat T9 / ASI09"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["authentication", "spoofing", "mas"]
+
+  - id: ASI09-01
+    framework: owasp_asi
+    title: "Inter-agent spoofing"
+    text: >
+      In a multi-agent topology, an attacker posts messages claiming to
+      originate from a legitimate peer agent.
+    parent_id: ASI09
+    tags: ["multi-agent"]
+
+  # ----------------------------------------------------------------------
+  # ASI10 -- Overwhelming Human-in-the-Loop
+  # ----------------------------------------------------------------------
+  - id: ASI10
+    framework: owasp_asi
+    title: "Overwhelming Human-in-the-Loop"
+    text: >
+      Confirmation fatigue: approval prompts are so frequent, verbose or
+      noisy that operators rubber-stamp them, defeating the oversight
+      control that justified deploying the agent at a lower autonomy level.
+    section: "Threat T10 / ASI10"
+    source_url: "https://genai.owasp.org/initiatives/#agentic-security-initiative"
+    tags: ["hitl", "oversight", "human-factors"]
+
+  - id: ASI10-01
+    framework: owasp_asi
+    title: "Batch approval dilution"
+    text: >
+      The UI groups many unrelated actions under a single "approve all"
+      button, hiding high-impact operations behind low-impact ones.
+    parent_id: ASI10
+    tags: ["ux"]

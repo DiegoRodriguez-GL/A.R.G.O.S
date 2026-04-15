@@ -1,0 +1,387 @@
+# ISO/IEC 42001:2023 Annex A controls -- ARGOS snapshot.
+#
+# Licensing: ISO/IEC 42001 is a copyrighted standard. Below we include only
+# ARGOS original summaries of each Annex A control for the purpose of
+# compliance-mapping tooling. For normative wording and implementation
+# guidance purchase the standard from ISO, IEC or an authorised reseller.
+
+meta:
+  id: iso_42001
+  name: "ISO/IEC 42001:2023 -- AI management systems"
+  version: "2023"
+  updated: 2026-04-15
+  source_url: "https://www.iso.org/standard/81230.html"
+  license: "ARGOS summaries (not ISO text)"
+  description: >
+    Management-system standard for AI, modelled after ISO 27001. Annex A
+    enumerates controls covering policies, internal organisation, resources,
+    impact assessment, lifecycle, data, information for stakeholders, use
+    of AI systems and third-party relationships.
+
+controls:
+  # ----------------------------------------------------------------------
+  # A.2 -- Policies related to AI
+  # ----------------------------------------------------------------------
+  - id: A.2.2
+    framework: iso_42001
+    title: "AI policy"
+    text: >
+      Top management establishes, documents and communicates an AI policy
+      aligned with the organisation's purpose and risk appetite.
+    section: "Annex A.2"
+    tags: ["policy", "governance"]
+
+  - id: A.2.3
+    framework: iso_42001
+    title: "Alignment with other organisational policies"
+    text: >
+      The AI policy and related documentation are aligned with other
+      organisational policies (security, privacy, quality, ethics).
+    section: "Annex A.2"
+    tags: ["alignment"]
+
+  - id: A.2.4
+    framework: iso_42001
+    title: "Review of AI policy"
+    text: >
+      The AI policy is reviewed at planned intervals and when significant
+      changes occur to ensure continuing suitability and effectiveness.
+    section: "Annex A.2"
+    tags: ["review"]
+
+  # ----------------------------------------------------------------------
+  # A.3 -- Internal organisation
+  # ----------------------------------------------------------------------
+  - id: A.3.2
+    framework: iso_42001
+    title: "AI roles and responsibilities"
+    text: >
+      Roles, responsibilities and authorities relevant to the AI management
+      system are defined, documented and communicated.
+    section: "Annex A.3"
+    tags: ["raci", "governance"]
+
+  - id: A.3.3
+    framework: iso_42001
+    title: "Reporting of concerns"
+    text: >
+      A process exists to report concerns about the organisation's AI
+      systems through appropriate channels.
+    section: "Annex A.3"
+    tags: ["whistleblowing", "reporting"]
+
+  # ----------------------------------------------------------------------
+  # A.4 -- Resources for AI systems
+  # ----------------------------------------------------------------------
+  - id: A.4.2
+    framework: iso_42001
+    title: "Resource documentation"
+    text: >
+      The resources required for the AI system (data, tools, computing,
+      people) are identified and documented.
+    section: "Annex A.4"
+    tags: ["resources"]
+
+  - id: A.4.3
+    framework: iso_42001
+    title: "Data resources"
+    text: >
+      Data resources for AI systems are identified, classified and managed
+      with regard to quality, provenance and accuracy.
+    section: "Annex A.4"
+    tags: ["data", "quality"]
+
+  - id: A.4.4
+    framework: iso_42001
+    title: "Tooling resources"
+    text: >
+      Tools used for AI development and operation are documented, managed
+      and secured.
+    section: "Annex A.4"
+    tags: ["tools"]
+
+  - id: A.4.5
+    framework: iso_42001
+    title: "System and computing resources"
+    text: >
+      System and computing resources for AI are documented, secured and
+      scaled according to risk.
+    section: "Annex A.4"
+    tags: ["infrastructure"]
+
+  - id: A.4.6
+    framework: iso_42001
+    title: "Human resources and competence"
+    text: >
+      Competence requirements for personnel involved with AI systems are
+      identified, and training is provided.
+    section: "Annex A.4"
+    tags: ["training", "competence"]
+
+  # ----------------------------------------------------------------------
+  # A.5 -- Assessing impacts of AI systems
+  # ----------------------------------------------------------------------
+  - id: A.5.2
+    framework: iso_42001
+    title: "AI system impact assessment process"
+    text: >
+      A process is established for assessing impacts of the AI system on
+      individuals, groups and society.
+    section: "Annex A.5"
+    tags: ["impact-assessment"]
+
+  - id: A.5.3
+    framework: iso_42001
+    title: "Documentation of AI system impact assessments"
+    text: >
+      Results of impact assessments are documented and retained.
+    section: "Annex A.5"
+    tags: ["documentation"]
+
+  - id: A.5.4
+    framework: iso_42001
+    title: "Assessing AI system impact on individuals"
+    text: >
+      The AI system impact on individuals and groups of individuals is
+      assessed and documented.
+    section: "Annex A.5"
+    tags: ["fundamental-rights"]
+
+  - id: A.5.5
+    framework: iso_42001
+    title: "Assessing societal impacts"
+    text: >
+      Societal impacts of the AI system are assessed and documented.
+    section: "Annex A.5"
+    tags: ["societal"]
+
+  # ----------------------------------------------------------------------
+  # A.6 -- AI system life cycle
+  # ----------------------------------------------------------------------
+  - id: A.6.1.2
+    framework: iso_42001
+    title: "Objectives for responsible development"
+    text: >
+      Objectives for responsible development and use of the AI system are
+      documented and integrated in the system life cycle.
+    section: "Annex A.6"
+    tags: ["lifecycle", "responsible-ai"]
+
+  - id: A.6.1.3
+    framework: iso_42001
+    title: "Process for responsible design and development"
+    text: >
+      A process is defined, documented and implemented for responsible
+      design and development of AI systems.
+    section: "Annex A.6"
+    tags: ["development-process"]
+
+  - id: A.6.2.2
+    framework: iso_42001
+    title: "Requirements and specifications"
+    text: >
+      Requirements and specifications for the AI system are documented,
+      including functional, non-functional and risk-related requirements.
+    section: "Annex A.6"
+    tags: ["requirements"]
+
+  - id: A.6.2.3
+    framework: iso_42001
+    title: "Documentation of AI system design and development"
+    text: >
+      Design and development decisions relating to AI systems are
+      documented, including architecture, data flows and model choices.
+    section: "Annex A.6"
+    tags: ["design-docs"]
+
+  - id: A.6.2.4
+    framework: iso_42001
+    title: "AI system verification and validation"
+    text: >
+      The AI system is verified and validated before deployment and after
+      significant changes.
+    section: "Annex A.6"
+    tags: ["vv", "testing"]
+
+  - id: A.6.2.5
+    framework: iso_42001
+    title: "AI system deployment"
+    text: >
+      Processes are defined for planning, authorising and performing
+      deployment of the AI system.
+    section: "Annex A.6"
+    tags: ["deployment"]
+
+  - id: A.6.2.6
+    framework: iso_42001
+    title: "AI system operation and monitoring"
+    text: >
+      The AI system is operated and monitored in accordance with defined
+      procedures, including logging and alerts.
+    section: "Annex A.6"
+    tags: ["monitoring", "operations"]
+
+  - id: A.6.2.7
+    framework: iso_42001
+    title: "Technical documentation of the AI system"
+    text: >
+      Technical documentation describing the AI system, its intended use
+      and its operational environment is created and maintained.
+    section: "Annex A.6"
+    tags: ["documentation"]
+
+  - id: A.6.2.8
+    framework: iso_42001
+    title: "AI system recording of event logs"
+    text: >
+      The AI system generates and retains event logs suitable for later
+      investigation of incidents and decisions.
+    section: "Annex A.6"
+    tags: ["logging", "audit"]
+
+  # ----------------------------------------------------------------------
+  # A.7 -- Data for AI systems
+  # ----------------------------------------------------------------------
+  - id: A.7.2
+    framework: iso_42001
+    title: "Data for development and enhancement of AI systems"
+    text: >
+      Data used for development, training and enhancement of AI systems
+      is documented, with provenance, integrity and quality controls.
+    section: "Annex A.7"
+    tags: ["data", "provenance"]
+
+  - id: A.7.3
+    framework: iso_42001
+    title: "Acquisition of data"
+    text: >
+      Processes for acquisition of data for AI systems are documented,
+      including legality and ethical considerations.
+    section: "Annex A.7"
+    tags: ["data-acquisition", "legal"]
+
+  - id: A.7.4
+    framework: iso_42001
+    title: "Quality of data for AI systems"
+    text: >
+      Data-quality requirements for AI systems are specified, verified
+      and maintained.
+    section: "Annex A.7"
+    tags: ["data-quality"]
+
+  - id: A.7.5
+    framework: iso_42001
+    title: "Data provenance"
+    text: >
+      Provenance of data used by AI systems is documented and maintained.
+    section: "Annex A.7"
+    tags: ["provenance"]
+
+  - id: A.7.6
+    framework: iso_42001
+    title: "Data preparation"
+    text: >
+      Preparation of data for AI systems -- including cleaning, labelling,
+      augmentation -- is documented and controlled.
+    section: "Annex A.7"
+    tags: ["data-prep"]
+
+  # ----------------------------------------------------------------------
+  # A.8 -- Information for interested parties
+  # ----------------------------------------------------------------------
+  - id: A.8.2
+    framework: iso_42001
+    title: "System documentation and information for users"
+    text: >
+      Relevant documentation and information about the AI system are
+      provided to users in a way that supports understanding and
+      appropriate use.
+    section: "Annex A.8"
+    tags: ["transparency", "users"]
+
+  - id: A.8.3
+    framework: iso_42001
+    title: "External reporting"
+    text: >
+      The organisation provides external reporting of AI system information
+      when required by law or agreement.
+    section: "Annex A.8"
+    tags: ["reporting"]
+
+  - id: A.8.4
+    framework: iso_42001
+    title: "Communication of incidents"
+    text: >
+      AI-related incidents are communicated to appropriate interested
+      parties, considering legal and contractual obligations.
+    section: "Annex A.8"
+    tags: ["incident", "notification"]
+
+  - id: A.8.5
+    framework: iso_42001
+    title: "Information for interested parties"
+    text: >
+      Information about the AI system is provided to interested parties
+      as required, including capabilities, limitations and risks.
+    section: "Annex A.8"
+    tags: ["stakeholders"]
+
+  # ----------------------------------------------------------------------
+  # A.9 -- Use of AI systems
+  # ----------------------------------------------------------------------
+  - id: A.9.2
+    framework: iso_42001
+    title: "Processes for responsible use"
+    text: >
+      Processes are established for responsible use of the AI system,
+      aligned with the organisation's policies.
+    section: "Annex A.9"
+    tags: ["responsible-use"]
+
+  - id: A.9.3
+    framework: iso_42001
+    title: "Objectives for responsible use"
+    text: >
+      Objectives for responsible use of the AI system are documented and
+      integrated into operations.
+    section: "Annex A.9"
+    tags: ["objectives"]
+
+  - id: A.9.4
+    framework: iso_42001
+    title: "Intended use of the AI system"
+    text: >
+      The intended use of the AI system is documented and communicated to
+      users and operators.
+    section: "Annex A.9"
+    tags: ["intended-use"]
+
+  # ----------------------------------------------------------------------
+  # A.10 -- Third-party relationships
+  # ----------------------------------------------------------------------
+  - id: A.10.2
+    framework: iso_42001
+    title: "Allocation of responsibilities"
+    text: >
+      Responsibilities between the organisation and its partners, suppliers
+      and third parties for AI systems are allocated and documented.
+    section: "Annex A.10"
+    tags: ["third-party", "raci"]
+
+  - id: A.10.3
+    framework: iso_42001
+    title: "Suppliers"
+    text: >
+      Requirements and obligations regarding AI system components and
+      services sourced from suppliers are documented and enforced.
+    section: "Annex A.10"
+    tags: ["suppliers", "supply-chain"]
+
+  - id: A.10.4
+    framework: iso_42001
+    title: "Customers"
+    text: >
+      Requirements and expectations from customers regarding AI systems
+      are documented and managed.
+    section: "Annex A.10"
+    tags: ["customers"]
