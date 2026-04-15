@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "local-stdio": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-time==1.2.0"],
+      "env": {}
+    },
+    "remote-http": {
+      "type": "streamable-http",
+      "url": "https://mcp.example.com/v1",
+      "headers": {
+        "Authorization": "Bearer ${MCP_TOKEN}"
+      }
+    }
+  }
+}
