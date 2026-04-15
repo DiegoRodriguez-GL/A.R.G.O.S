@@ -1,0 +1,36 @@
+id: CUSTOM-AUTH-COOKIE-HARDCODED
+info:
+  name: "Remote server carries a hardcoded Cookie header"
+  author: argos
+  severity: high
+  description: >
+    The server's headers declare a literal Cookie value with what looks
+    like a session id. Cookies baked into configuration leak to every
+    reader of the repository and remain valid until the session expires.
+  remediation: >
+    Remove the cookie from config. Authenticate the remote MCP via the
+    Authorization header resolved at runtime from a secret manager.
+  compliance:
+    - owasp_asi:ASI03
+    - owasp_asi:ASI03-02
+    - csa_aicm:IAM-01
+    - eu_ai_act:ART-15
+  tags: [iam, cookie, auth]
+
+matchers-condition: and
+matchers:
+  - type: regex
+    part: server.headers.Cookie
+    regex:
+      - "[A-Za-z0-9._=\\-]{20,}"
+  - type: regex
+    part: server.headers.Cookie
+    negative: true
+    regex:
+      - "^\\$\\{.*\\}$"
+
+extractors:
+  - type: regex
+    part: server.headers.Cookie
+    regex: "([A-Za-z0-9_]+)=([A-Za-z0-9._\\-]{20,})"
+    group: 1

@@ -6,6 +6,31 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added -- Module 3 (YAML rules engine)
+
+- `argos-rules` package: Nuclei-inspired DSL with frozen Pydantic models,
+  validated by a published JSON Schema (`schema/rule.schema.json`).
+- Matchers: `word`, `regex`, `glob`, each with `condition` (or/and),
+  `negative` and (for word/regex) `case-insensitive` flags.
+- Extractors: `regex` (with capture groups) and `word`; capture concrete
+  evidence snippets for every finding.
+- Selectors resolve dotted paths against MCPConfig / MCPServer:
+  `server.name`, `server.command`, `server.args`, `server.args[N]`,
+  `server.argv`, `server.url`, `server.env.<KEY>`, `server.env.*`,
+  `server.env.keys`, `server.headers.<KEY>`, `server.headers.*`,
+  `server.raw`, `server.transport`, `server.cwd`, `config.dialect`,
+  `config.path`, `config.raw`.
+- Defence-in-depth limits: max rule size 64 KiB, max matchers 16,
+  max extractors 8, max words 64, max regexes 32, max regex length 1000,
+  max rules per directory 1000. Patterns compile at load time.
+- Five example rules under `packages/argos-rules/examples/`.
+- Scanner engine accepts `yaml_rules_dir=` to combine built-in + YAML
+  findings in a single `ScanResult` with the same Finding shape.
+- New CLI flags: `argos scan --rules-dir PATH` and
+  `argos rules validate FILE_OR_DIR`.
+- ~89 new tests covering parser, selectors, matchers, engine and CLI
+  integration.
+
 ### Added -- Module 2 (static MCP scanner)
 
 - Parser that normalises `claude_desktop`, `vscode` and `mcp-spec` dialects

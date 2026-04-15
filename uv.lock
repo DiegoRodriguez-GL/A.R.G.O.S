@@ -213,12 +213,14 @@ version = "0.0.1"
 source = { editable = "packages/argos-scanner" }
 dependencies = [
     { name = "argos-core" },
+    { name = "argos-rules" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
+    { name = "argos-rules", editable = "packages/argos-rules" },
     { name = "pydantic", specifier = ">=2.9.2" },
 ]
 

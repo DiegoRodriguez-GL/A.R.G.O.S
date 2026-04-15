@@ -1,0 +1,29 @@
+id: CUSTOM-DEPRECATED-FS-PACKAGE
+info:
+  name: "Deprecated filesystem MCP server package detected"
+  author: argos
+  severity: medium
+  description: >
+    The server is launched from a deprecated filesystem-server package name.
+    Deprecated packages no longer receive security fixes and may be hijacked
+    by package squatters.
+  remediation: >
+    Migrate to @modelcontextprotocol/server-filesystem or a maintained fork
+    and pin the version.
+  compliance:
+    - owasp_asi:ASI09
+    - owasp_asi:ASI09-01
+    - csa_aicm:DSP-02
+    - nist_ai_rmf:GV-6
+    - iso_42001:A.10.3
+  tags: [supply-chain, npm, deprecated]
+  references:
+    - https://modelcontextprotocol.io/registry
+
+matchers:
+  - type: word
+    part: server.argv
+    words:
+      - "server-fs-legacy"
+      - "mcp-filesystem-old"
+    case-insensitive: true

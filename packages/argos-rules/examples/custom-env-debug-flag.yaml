@@ -1,0 +1,28 @@
+id: CUSTOM-ENV-DEBUG-ENABLED
+info:
+  name: "Server started with a DEBUG / VERBOSE env enabled"
+  author: argos
+  severity: low
+  description: >
+    The server env declares DEBUG=1, VERBOSE=true or similar. Debug modes
+    usually disable safety checks, bypass timeouts and print sensitive
+    data in logs. They should never be on outside a developer session.
+  remediation: >
+    Remove the debug env flag before deploying. If troubleshooting,
+    use a scoped profile that is not committed to version control.
+  compliance:
+    - owasp_asi:ASI08
+    - owasp_asi:ASI08-01
+    - iso_42001:A.6.2.8
+  tags: [operations, debug]
+
+matchers-condition: or
+matchers:
+  - type: regex
+    part: server.env.keys
+    regex:
+      - "^(DEBUG|VERBOSE|TRACE)$"
+  - type: word
+    part: server.env.*
+    words: ["true", "1", "yes", "on"]
+    case-insensitive: true

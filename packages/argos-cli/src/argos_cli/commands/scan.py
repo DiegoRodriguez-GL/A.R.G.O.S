@@ -7,6 +7,7 @@ from typing import Annotated
 
 import typer
 from argos_core import ScanResult, Severity
+from argos_rules import RuleError
 from argos_scanner import ParserError
 from argos_scanner import scan as run_scan
 from rich.table import Table
@@ -110,6 +111,18 @@ def scan(
             help="Write JSONL findings to this path instead of stdout (--format jsonl).",
         ),
     ] = None,
+    rules_dir: Annotated[
+        Path | None,
+        typer.Option(
+            "--rules-dir",
+            "-R",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            resolve_path=True,
+            help="Directory of YAML rule files to apply on top of built-in rules.",
+        ),
+    ] = None,
 ) -> None:
     """Statically scan an MCP configuration file for known risk patterns."""
     severity_floor = _parse_severity(severity)
@@ -121,9 +134,17 @@ def scan(
         rule_globs = None
 
     try:
-        result = run_scan(target, rules=rule_globs, severity_floor=severity_floor)
+        result = run_scan(
+            target,
+            rules=rule_globs,
+            severity_floor=severity_floor,
+            yaml_rules_dir=rules_dir,
+        )
     except ParserError as exc:
         get_err_console().print(f"[argos.danger]parse error:[/] {exc}")
+        raise typer.Exit(code=2) from exc
+    except RuleError as exc:
+        get_err_console().print(f"[argos.danger]rule error:[/] {exc}")
         raise typer.Exit(code=2) from exc
 
     if output_format == "jsonl":
