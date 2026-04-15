@@ -41,15 +41,28 @@ _FREE_TEXT_KEYS: frozenset[str] = frozenset(
 )
 
 
+_MAX_DEPTH = 64
+
+
 def _iter_free_text(value: Any, path: str = "") -> Iterable[tuple[str, str]]:
-    if isinstance(value, str):
-        yield path, value
-    elif isinstance(value, dict):
-        for k, v in value.items():
-            yield from _iter_free_text(v, f"{path}.{k}" if path else str(k))
-    elif isinstance(value, list):
-        for i, v in enumerate(value):
-            yield from _iter_free_text(v, f"{path}[{i}]")
+    # Iterative traversal with a bounded depth so a maliciously nested config
+    # cannot trigger RecursionError or consume unbounded stack.
+    stack: list[tuple[Any, str, int]] = [(value, path, 0)]
+    while stack:
+        node, node_path, depth = stack.pop()
+        if depth >= _MAX_DEPTH:
+            continue
+        if isinstance(node, str):
+            yield node_path, node
+        elif isinstance(node, dict):
+            for k, v in node.items():
+                key = str(k)
+                stack.append(
+                    (v, f"{node_path}.{key}" if node_path else key, depth + 1),
+                )
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                stack.append((v, f"{node_path}[{i}]", depth + 1))
 
 
 @register

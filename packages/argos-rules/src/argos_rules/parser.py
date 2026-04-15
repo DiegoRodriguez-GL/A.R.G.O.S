@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -52,14 +53,35 @@ def load_rule_file(path: Path) -> Rule:
     return parse_rule(text, origin=str(path))
 
 
+def _walk_yaml_files(root: Path) -> list[Path]:
+    """Walk ``root`` without following symlinks, returning .yaml/.yml files.
+
+    A hostile tree with a symlink loop would make ``rglob`` spin forever;
+    ``os.walk(..., followlinks=False)`` plus an explicit symlink check stops
+    traversal at every symlink boundary.
+    """
+    files: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        dirnames[:] = [d for d in dirnames if not Path(dirpath, d).is_symlink()]
+        for name in filenames:
+            p = Path(dirpath, name)
+            if p.is_symlink():
+                continue
+            if p.suffix.lower() in _YAML_SUFFIXES and p.is_file():
+                files.append(p)
+    return sorted(files)
+
+
 def load_rules_dir(path: Path) -> tuple[Rule, ...]:
-    """Load every YAML file under ``path`` (recursive). Duplicated rule ids
-    inside the directory are rejected."""
+    """Load every YAML file under ``path`` (recursive, symlink-safe).
+
+    Duplicated rule ids inside the directory are rejected.
+    """
     if not path.is_dir():
         msg = f"not a directory: {path}"
         raise RuleError(msg)
 
-    files = sorted(p for p in path.rglob("*") if p.is_file() and p.suffix.lower() in _YAML_SUFFIXES)
+    files = _walk_yaml_files(path)
     if len(files) > _MAX_RULES_PER_DIR:
         msg = f"directory {path} contains {len(files)} rules; max is {_MAX_RULES_PER_DIR}"
         raise RuleError(msg)

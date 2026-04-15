@@ -41,6 +41,7 @@ _SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 _ENTROPY_MIN_LENGTH = 20
+_ENTROPY_MAX_LENGTH = 4096  # cap input to bound worst-case wall clock
 _ENTROPY_THRESHOLD = 4.0  # bits/char; opaque tokens typically score 4.5+
 _PLACEHOLDER_VALUES: frozenset[str] = frozenset(
     {
@@ -164,7 +165,10 @@ class HighEntropySecretRule(BaseRule):
                 continue
             if len(value) < _ENTROPY_MIN_LENGTH:
                 continue
-            entropy = _shannon_entropy(value)
+            # Bound worst-case cost on giant values; entropy of the first 4KiB
+            # is a reliable proxy for the entropy of an opaque credential.
+            sample = value if len(value) <= _ENTROPY_MAX_LENGTH else value[:_ENTROPY_MAX_LENGTH]
+            entropy = _shannon_entropy(sample)
             if entropy < _ENTROPY_THRESHOLD:
                 continue
             # Skip if another env value referencing this one looks like a

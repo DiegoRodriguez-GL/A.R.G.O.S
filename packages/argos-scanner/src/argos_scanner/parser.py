@@ -26,6 +26,9 @@ from argos_scanner.models import MCPConfig, MCPServer, TransportKind
 _JSON_SUFFIXES: frozenset[str] = frozenset({".json"})
 _YAML_SUFFIXES: frozenset[str] = frozenset({".yaml", ".yml"})
 
+# Defence-in-depth limit. A legitimate MCP config rarely exceeds a few KiB.
+MAX_CONFIG_BYTES = 8 * 1024 * 1024  # 8 MiB
+
 
 class ParserError(Exception):
     """Raised when a file cannot be parsed into an :class:`MCPConfig`."""
@@ -39,6 +42,14 @@ def load(path: Path) -> MCPConfig:
     """Read and normalise an MCP config file. See module docstring for dialects."""
     if not path.is_file():
         msg = f"path is not a file: {path}"
+        raise ParserError(msg)
+
+    size = path.stat().st_size
+    if size > MAX_CONFIG_BYTES:
+        msg = (
+            f"{path}: refusing to parse {size} bytes "
+            f"(limit {MAX_CONFIG_BYTES}); raise MAX_CONFIG_BYTES if the source is trusted."
+        )
         raise ParserError(msg)
 
     raw = _read_any(path)
@@ -72,12 +83,18 @@ def _read_any(path: Path) -> Any:
     except yaml.YAMLError as e:
         msg = f"{path}: invalid YAML ({e})"
         raise ParserError(msg) from e
+    except RecursionError as e:
+        msg = f"{path}: structure is too deeply nested"
+        raise ParserError(msg) from e
 
     # Fall back to JSON for unknown suffixes (common pattern: dotfiles).
     try:
         return json.loads(text)
     except json.JSONDecodeError as e:
         msg = f"{path}: unknown file type and content is not valid JSON"
+        raise ParserError(msg) from e
+    except RecursionError as e:
+        msg = f"{path}: structure is too deeply nested"
         raise ParserError(msg) from e
 
 

@@ -5,8 +5,16 @@ from __future__ import annotations
 import fnmatch
 import re
 from collections.abc import Iterable
+from functools import lru_cache
 
 from argos_rules.models import GlobMatcher, Matcher, RegexMatcher, WordMatcher
+
+
+@lru_cache(maxsize=1024)
+def _compile(pattern: str) -> re.Pattern[str]:
+    # Patterns are validated at rule-load time so compilation never raises here.
+    # The cache keeps hot rules from recompiling on every server evaluated.
+    return re.compile(pattern)
 
 
 def _any_or_all(results: Iterable[bool], *, condition: str) -> bool:
@@ -26,7 +34,7 @@ def _word_fires(haystack: str, matcher: WordMatcher) -> bool:
 
 
 def _regex_fires(haystack: str, matcher: RegexMatcher) -> bool:
-    compiled = [re.compile(p) for p in matcher.regex]
+    compiled = [_compile(p) for p in matcher.regex]
     return _any_or_all(
         (bool(r.search(haystack)) for r in compiled),
         condition=matcher.condition,
