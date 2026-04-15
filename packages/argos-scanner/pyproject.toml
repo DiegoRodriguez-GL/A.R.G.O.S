@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "argos-scanner"
+version = "0.0.1"
+description = "ARGOS static scanner for Model Context Protocol (MCP) configurations."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "ARGOS Contributors" }]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+dependencies = [
+  "argos-core",
+  "pydantic>=2.9.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/argos_scanner"]

@@ -1,0 +1,91 @@
+/* Base layout and primitives. No component-specific styles here. */
+html {
+  font-family: var(--argos-font-sans);
+  font-size: 16px;
+  color: var(--argos-color-ink-950);
+  background: var(--argos-color-paper);
+}
+
+body {
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.argos-container {
+  width: 100%;
+  max-width: var(--argos-max-content);
+  margin: 0 auto;
+  padding-inline: var(--argos-sp-6);
+}
+
+.argos-row { display: flex; align-items: center; gap: var(--argos-sp-3); }
+.argos-between { justify-content: space-between; }
+
+.argos-header {
+  background: var(--argos-color-ink-900);
+  color: var(--argos-color-ink-100);
+  padding-block: var(--argos-sp-4);
+  font-size: var(--argos-fs-sm);
+}
+
+.argos-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--argos-sp-2);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--argos-color-paper);
+}
+
+.argos-brand-mark {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+  background: var(--argos-color-green-500);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.argos-header-meta {
+  color: var(--argos-color-ink-300);
+  font-family: var(--argos-font-mono);
+  font-size: var(--argos-fs-xs);
+}
+
+.argos-main {
+  flex: 1;
+  padding-block: var(--argos-sp-12);
+}
+
+.argos-footer {
+  background: var(--argos-color-ink-900);
+  color: var(--argos-color-ink-300);
+  padding-block: var(--argos-sp-6);
+  font-size: var(--argos-fs-xs);
+  font-family: var(--argos-font-mono);
+}
+
+h1 { font-size: var(--argos-fs-4xl); font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
+h2 { font-size: var(--argos-fs-3xl); font-weight: 700; line-height: 1.2; }
+h3 { font-size: var(--argos-fs-2xl); font-weight: 600; line-height: 1.3; }
+
+code, kbd, samp {
+  font-family: var(--argos-font-mono);
+  font-size: 0.9em;
+  background: var(--argos-color-ink-100);
+  padding: 0 0.25rem;
+  border-radius: var(--argos-radius-sm);
+}
+
+@media print {
+  .argos-header, .argos-footer { background: none; color: var(--argos-color-ink-950); }
+  body { color: var(--argos-color-ink-950); }
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"], html[data-theme="dark"] {
+    color: var(--argos-color-ink-100);
+    background: var(--argos-color-ink-900);
+  }
+}

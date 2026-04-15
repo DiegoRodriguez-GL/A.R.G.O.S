@@ -1,0 +1,18 @@
+# ARGOS code owners.
+#
+# The left-most matching path takes precedence. Replace the placeholder
+# handle with your GitHub username before pushing to the remote.
+
+*                                      @argos-maintainer
+
+/docs-internal/                        @argos-maintainer
+/.github/                              @argos-maintainer
+/design-system/                        @argos-maintainer
+
+/packages/argos-core/                  @argos-maintainer
+/packages/argos-cli/                   @argos-maintainer
+/packages/argos-scanner/               @argos-maintainer
+/packages/argos-redteam/               @argos-maintainer
+/packages/argos-proxy/                 @argos-maintainer
+/packages/argos-reporter/              @argos-maintainer
+/packages/argos-rules/                 @argos-maintainer

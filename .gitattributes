@@ -1,0 +1,35 @@
+# Normalise line endings across platforms
+* text=auto eol=lf
+
+# Binary files
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Diff-friendly declarations
+*.py diff=python
+*.md diff=markdown
+*.yaml text
+*.yml text
+*.toml text
+*.json text
+*.html text
+*.css text
+*.js text
+*.ts text
+
+# Generated files excluded from GitHub language stats
+design-system/tokens.css linguist-generated=true
+design-system/tokens.py linguist-generated=true
+design-system/tokens.ts linguist-generated=true
+*.lock linguist-generated=true

@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARGOS Design Tokens",
+  "description": "Schema for design-system/tokens.json. Any change that breaks this schema must be reflected here in the same RFC.",
+  "type": "object",
+  "required": ["meta", "color", "typography", "spacing", "radius", "shadow"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name":        { "type": "string" },
+        "version":     { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "description": { "type": "string" },
+        "reference":   { "type": "string" },
+        "updated":     { "type": "string", "format": "date" }
+      }
+    },
+    "color": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "$ref": "#/definitions/tokenValue" },
+          {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/definitions/tokenValue" }
+          }
+        ]
+      }
+    },
+    "typography": {
+      "type": "object",
+      "required": ["family", "size", "weight"],
+      "properties": {
+        "family": { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } },
+        "size":   { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } },
+        "weight": { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } }
+      }
+    },
+    "spacing": { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } },
+    "layout":  { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } },
+    "radius":  { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } },
+    "shadow":  { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } },
+    "motion": {
+      "type": "object",
+      "properties": {
+        "duration": { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } },
+        "easing":   { "type": "object", "additionalProperties": { "$ref": "#/definitions/tokenValue" } }
+      }
+    }
+  },
+  "definitions": {
+    "tokenValue": {
+      "type": "object",
+      "required": ["value"],
+      "additionalProperties": true,
+      "properties": {
+        "value":       { "type": ["string", "number"] },
+        "px":          { "type": "number" },
+        "line-height": { "type": "number" },
+        "usage":       { "type": "string" }
+      }
+    }
+  }
+}

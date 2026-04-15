@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security issue
+    url: https://github.com/argos-ai-audit/argos/security/advisories/new
+    about: Use GitHub's private advisory flow. See SECURITY.md for the full disclosure policy.
+  - name: Discuss or ask a question
+    url: https://github.com/argos-ai-audit/argos/discussions
+    about: General questions, ideas, and usage help.

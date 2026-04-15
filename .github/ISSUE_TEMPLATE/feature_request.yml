@@ -1,0 +1,51 @@
+name: Feature request
+description: Propose a change or extension to ARGOS.
+title: "[feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ARGOS is intentionally narrow in scope (see `docs-internal/PLAN.md`).
+        Proposals outside the stated scope are welcome but will typically be
+        tracked as `[EXTENSIÓN]` and deferred.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is the user- or auditor-facing problem you are trying to solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Falls within declared scope?
+      description: See §2 of docs-internal/PLAN.md
+      options:
+        - "Yes -- within 2.1 (planned)"
+        - "Grey area -- 2.3"
+        - "No -- EXTENSIÓN"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I have read the project scope statement.
+          required: true

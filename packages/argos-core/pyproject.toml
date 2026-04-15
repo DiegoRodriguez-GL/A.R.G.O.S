@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "argos-core"
+version = "0.0.1"
+description = "ARGOS core -- Pydantic models, ABC interfaces, compliance mappings, autonomy taxonomy, telemetry."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "ARGOS Contributors" }]
+keywords = ["security", "ai-safety", "mcp", "owasp-asi", "compliance"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+dependencies = [
+  "pydantic>=2.9.2",
+  "typing-extensions>=4.12.2",
+  "opentelemetry-api>=1.27.0",
+  "opentelemetry-sdk>=1.27.0",
+  "pyyaml>=6.0.2",
+]
+
+[project.urls]
+Homepage      = "https://github.com/argos-ai-audit/argos"
+Documentation = "https://argos-ai-audit.github.io/argos"
+Issues        = "https://github.com/argos-ai-audit/argos/issues"
+Repository    = "https://github.com/argos-ai-audit/argos"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/argos_core"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/argos_core", "tests", "README.md"]

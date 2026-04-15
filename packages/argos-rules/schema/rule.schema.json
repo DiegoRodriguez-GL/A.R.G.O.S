@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARGOS rule",
+  "description": "Authoritative schema for ARGOS YAML rules. Module 3 extends this with concrete matcher/extractor definitions.",
+  "type": "object",
+  "required": ["id", "info", "matchers"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_\\-\\.]{1,63}$",
+      "description": "Stable rule identifier. Must match the canonical form enforced by argos_core.Finding."
+    },
+    "info": {
+      "type": "object",
+      "required": ["name", "severity"],
+      "additionalProperties": false,
+      "properties": {
+        "name":        { "type": "string", "minLength": 1 },
+        "author":      { "type": "string" },
+        "severity":    { "type": "string", "enum": ["info", "low", "medium", "high", "critical"] },
+        "description": { "type": "string" },
+        "remediation": { "type": "string" },
+        "references":  { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "compliance":  { "type": "array", "items": { "type": "string" } },
+        "tags":        { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "matchers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "object" }
+    },
+    "extractors": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}
