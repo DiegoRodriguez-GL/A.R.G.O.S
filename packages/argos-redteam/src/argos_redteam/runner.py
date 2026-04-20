@@ -83,6 +83,12 @@ async def run_async(
     if severity_floor is not None:
         findings = [f for f in findings if f.severity >= severity_floor]
 
+    # Deterministic order across runs. Concurrency under asyncio.gather
+    # preserves caller order, but sorting explicitly means a reordered
+    # selector list, or a future strategy that emits findings from a
+    # pool, still produces byte-stable reports (useful for diffing).
+    findings.sort(key=lambda f: (f.rule_id, f.id))
+
     finished = datetime.now(UTC)
     return ScanResult(
         target=t,

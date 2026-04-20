@@ -1,7 +1,18 @@
-"""Base class shared by every ARGOS red-team probe."""
+"""Base class shared by every ARGOS red-team probe.
+
+The ``ASI##`` prefix used by every probe identifier follows the OWASP
+``Agentic AI - Threats and Mitigations v1.0`` paper (February 2025),
+whose internal numbering is ``T1..T15`` but which maps one-to-one to
+``ASI01..ASI10`` for the first ten categories. The later ``OWASP
+Top 10 for Agentic Applications 2026`` (December 2025) reuses the
+``ASI01..ASI10`` prefix with a different ordering; a cross-reference
+table is kept in ``docs/asi-taxonomy-crossref.md`` and in the TFM
+dossier. See :data:`OWASP_ASI_TAXONOMY_SOURCE`.
+"""
 
 from __future__ import annotations
 
+import asyncio
 from abc import abstractmethod
 from collections.abc import AsyncIterable
 
@@ -16,11 +27,21 @@ from argos_redteam.models import (
     Role,
     Transcript,
 )
+from argos_redteam.redaction import redact
 from argos_redteam.strategies._base import BaseStrategy
 from argos_redteam.strategies.single_turn import SingleTurnStrategy
 from argos_redteam.transport import AgentTransport
 
 _PRODUCER = "argos-redteam"
+
+OWASP_ASI_TAXONOMY_SOURCE = (
+    "OWASP Agentic AI: Threats and Mitigations v1.0 (February 2025). "
+    "ASI## codes used in this catalogue map 1:1 to the T# numbering of "
+    "that paper. The later OWASP Top 10 for Agentic Applications 2026 "
+    "(December 2025) reuses the ASI prefix with different category "
+    "ordering; the cross-reference is documented in docs/asi-taxonomy-"
+    "crossref.md."
+)
 
 
 class BaseProbe(IProbe):
@@ -72,7 +93,18 @@ class BaseProbe(IProbe):
 
         strategy = self.default_strategy or SingleTurnStrategy()
         seed = self.build_seed()
-        transcript = await strategy.run(transport, seed)
+        # Per-probe timeout gate: a real agent can hang indefinitely
+        # (long tool calls, network stalls). Clamp the entire strategy
+        # execution to ``ctx.timeout_seconds`` and treat a timeout as
+        # "no finding" rather than an error, since a stuck agent does
+        # not empirically demonstrate the attacker behaviour under test.
+        try:
+            transcript = await asyncio.wait_for(
+                strategy.run(transport, seed),
+                timeout=ctx.timeout_seconds,
+            )
+        except TimeoutError:
+            return
 
         # Assistant's final reply (or empty if nothing came back).
         last_assistant = next(
@@ -103,11 +135,20 @@ class BaseProbe(IProbe):
     # Helpers
     # ------------------------------------------------------------------
     def _finding_from(self, target: Target, result: ProbeResult) -> Finding:
+        # Redact obvious secrets before minting the Evidence. The
+        # red-team tool sees raw agent output (API keys, passwords,
+        # PII); writing those back into a report that flows to CI
+        # logs, slack bots or compliance auditors would turn a
+        # successful detection into a data-exfiltration vector of
+        # its own.
+        request_body = redact(result.transcript.rendered()[:16_000])
+        response_body = redact(_final_assistant(result.transcript))
+        summary_body = redact(result.rationale[:200])
         evidence = Evidence(
             kind="request-response",
-            summary=f"{self.probe_id}: {result.rationale[:200]}",
-            request=result.transcript.rendered()[:16_000],
-            response=_final_assistant(result.transcript),
+            summary=f"{self.probe_id}: {summary_body}",
+            request=request_body,
+            response=response_body,
         )
         return Finding(
             rule_id=self.probe_id,
