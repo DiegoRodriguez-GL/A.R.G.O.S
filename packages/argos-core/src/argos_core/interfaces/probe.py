@@ -26,7 +26,12 @@ class ProbeContext(BaseModel):
 
 
 class IProbe(IPlugin):
-    """Async generator probe. Multi-turn attacks yield findings progressively."""
+    """Async generator probe. Multi-turn attacks yield findings progressively.
+
+    Implementations are **async generators**: they use ``async def`` with
+    ``yield`` rather than returning an awaitable. Python's type-checker
+    treats such functions as returning an ``AsyncIterable`` directly.
+    """
 
     @abstractmethod
-    async def run(self, ctx: ProbeContext) -> AsyncIterable[Finding]: ...
+    def run(self, ctx: ProbeContext) -> AsyncIterable[Finding]: ...
