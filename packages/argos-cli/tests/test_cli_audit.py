@@ -138,7 +138,8 @@ def test_bare_invocation_shows_help() -> None:
 
 
 def test_skeleton_subcommands_exit_two_and_mention_module() -> None:
-    for sub, mod in [("redteam", "Module 4"), ("proxy", "Module 5"), ("report", "Module 6")]:
+    # Only proxy and report remain as placeholders. redteam is implemented (M4).
+    for sub, mod in [("proxy", "Module 5"), ("report", "Module 6")]:
         r = runner.invoke(app, [sub])
         assert r.exit_code == 2
         combined = r.stdout + (r.stderr or "")
