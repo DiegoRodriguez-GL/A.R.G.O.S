@@ -66,7 +66,7 @@ jobs:
         with:
           name: dist
           path: dist
-      - uses: pypa/gh-action-pypi-publish@897895f1e160c830e369f9779632ebc134688e1b  # release/v1
+      - uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b  # release/v1
         with:
           packages-dir: dist
           skip-existing: true
