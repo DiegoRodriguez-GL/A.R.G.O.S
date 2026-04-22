@@ -24,7 +24,7 @@ from argos_redteam.detectors import (
 )
 from argos_redteam.models import Message, ProbeOutcome, ProbeResult, Role, Transcript
 from argos_redteam.probes import BaseProbe, all_probes, select
-from argos_redteam.runner import run, run_async, summarise
+from argos_redteam.runner import run, run_async, run_errors, summarise
 from argos_redteam.strategies import BaseStrategy, MultiTurnStrategy, SingleTurnStrategy
 from argos_redteam.transport import (
     AgentTransport,
@@ -56,6 +56,7 @@ __all__ = [
     "all_probes",
     "run",
     "run_async",
+    "run_errors",
     "select",
     "summarise",
 ]

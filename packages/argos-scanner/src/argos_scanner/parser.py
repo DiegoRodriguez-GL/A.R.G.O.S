@@ -40,6 +40,17 @@ class UnsupportedDialectError(ParserError):
 
 def load(path: Path) -> MCPConfig:
     """Read and normalise an MCP config file. See module docstring for dialects."""
+    # Reject symbolic links before any other check. A symlink in the scan
+    # path lets an attacker with write access to a known config directory
+    # steer the scanner at arbitrary files (/etc/shadow, private keys,
+    # logs). The parser treats the file contents as data, but reading
+    # them at all is already information disclosure.
+    if path.is_symlink():
+        msg = (
+            f"path is a symbolic link: {path}; refusing to follow. "
+            "Resolve the target explicitly if the symlink is intentional."
+        )
+        raise ParserError(msg)
     if not path.is_file():
         msg = f"path is not a file: {path}"
         raise ParserError(msg)

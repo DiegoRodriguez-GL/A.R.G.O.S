@@ -194,7 +194,7 @@ addopts = [
   "--tb=short",
   "--import-mode=importlib",
 ]
-testpaths = ["packages"]
+testpaths = ["packages", "tests"]
 python_files = ["test_*.py", "*_test.py"]
 asyncio_mode = "auto"
 markers = [

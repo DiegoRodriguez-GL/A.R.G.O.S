@@ -30,6 +30,49 @@ MAX_GLOBS = 32
 MAX_MATCHERS = 16
 MAX_EXTRACTORS = 8
 
+
+# Simple ReDoS heuristic: reject patterns whose structure is known to trigger
+# catastrophic backtracking in Python's stdlib ``re``. Stdlib ``re`` has no
+# timeout, and a rule-authored pattern like ``(a+)+$`` applied to a long run
+# of ``a`` will hang the engine indefinitely. This linter catches the two
+# common shapes: ``(X*)*``-style "quantifier-over-quantified-group" and
+# ``(a|a)+``-style "alternation where branches share a prefix".
+_NESTED_QUANTIFIER_RE = re.compile(
+    r"""
+    \(                        # group open
+    (?:
+        [^()\\]               # benign char
+      | \\.                   # any escape
+    )*?
+    [*+?]\??                  # inner quantifier
+    (?:
+        [^()\\]
+      | \\.
+    )*?
+    \)                        # group close
+    [*+]                      # outer quantifier  <-- the smell
+    """,
+    re.VERBOSE,
+)
+
+
+def _reject_if_redos_risk(pattern: str) -> None:
+    """Raise ``ValueError`` if ``pattern`` has an obvious ReDoS shape.
+
+    Heuristic, not a solver: we reject the structural patterns that cause
+    exponential backtracking in practice. False positives are acceptable
+    (rule authors can rewrite their pattern); false negatives are not, so
+    the match is deliberately eager.
+    """
+    if _NESTED_QUANTIFIER_RE.search(pattern):
+        msg = (
+            f"regex {pattern!r} has a nested-quantifier shape (e.g. "
+            "'(X+)+') that may trigger catastrophic backtracking (ReDoS); "
+            "rewrite with a bounded quantifier or an anchored alternative"
+        )
+        raise ValueError(msg)
+
+
 Condition = Literal["or", "and"]
 
 RuleId = Annotated[str, StringConstraints(pattern=r"^[A-Z0-9][A-Z0-9_\-\.]{1,127}$")]
@@ -89,6 +132,7 @@ class RegexMatcher(BaseModel):
             except re.error as exc:
                 msg = f"invalid regex {pattern!r}: {exc}"
                 raise ValueError(msg) from exc
+            _reject_if_redos_risk(pattern)
         return v
 
 
@@ -121,6 +165,7 @@ class RegexExtractor(BaseModel):
         except re.error as exc:
             msg = f"invalid extractor regex {v!r}: {exc}"
             raise ValueError(msg) from exc
+        _reject_if_redos_risk(v)
         return v
 
 

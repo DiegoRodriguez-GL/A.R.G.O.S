@@ -22,7 +22,6 @@ classifiers = [
 dependencies = [
   "argos-core",
   "pyyaml>=6.0.2",
-  "jsonschema>=4.23.0",
 ]
 
 [tool.hatch.build.targets.wheel]
