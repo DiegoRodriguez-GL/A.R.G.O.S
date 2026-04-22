@@ -18,7 +18,14 @@ class ScanResult(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     target: Target
-    producer: str = Field(..., min_length=1, description="name@version of the emitting tool.")
+    producer: str = Field(
+        ...,
+        min_length=1,
+        description=(
+            "Name of the emitting tool (bare package name or 'name@version'). "
+            "Consumers must treat the format as free-form text."
+        ),
+    )
     started_at: datetime
     finished_at: datetime
     findings: tuple[Finding, ...] = Field(default_factory=tuple)

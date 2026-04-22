@@ -43,6 +43,13 @@ _FREE_TEXT_KEYS: frozenset[str] = frozenset(
 
 _MAX_DEPTH = 64
 
+# Hard cap on findings emitted by a single invocation of this rule per
+# server. A malicious config with hundreds of trigger phrases across many
+# tool descriptions would otherwise produce an unbounded, hard-to-triage
+# report. After the cap we emit a summary finding pointing to the first
+# N hits so the operator still sees the scope, without DoS.
+_MAX_FINDINGS_PER_SERVER = 25
+
 
 def _iter_free_text(value: Any, path: str = "") -> Iterable[tuple[str, str]]:
     # Iterative traversal with a bounded depth so a maliciously nested config
@@ -99,12 +106,16 @@ class ToolDescriptionPromptInjectionRule(BaseRule):
         server: MCPServer,
     ) -> Iterable[Finding]:
         findings: list[Finding] = []
+        hits_skipped = 0
         for subpath, text in _iter_free_text(server.raw):
             last = subpath.rsplit(".", 1)[-1].split("[", 1)[0]
             if last not in _FREE_TEXT_KEYS:
                 continue
             match = _SUSPICIOUS_PHRASES.search(text)
             if match is None:
+                continue
+            if len(findings) >= _MAX_FINDINGS_PER_SERVER:
+                hits_skipped += 1
                 continue
             findings.append(
                 self.build_finding(
@@ -118,6 +129,32 @@ class ToolDescriptionPromptInjectionRule(BaseRule):
                         Evidence(
                             kind="source-range",
                             summary=f"{server.name}.{subpath} contains {match.group(0)!r}",
+                            path=str(config.path),
+                        ),
+                    ),
+                ),
+            )
+        if hits_skipped:
+            # Single summary finding so the operator knows the cap clipped
+            # the output and by how much. Severity stays HIGH because the
+            # underlying class of risk is unchanged.
+            findings.append(
+                self.build_finding(
+                    target=target,
+                    title=f"{self.title} (truncated)",
+                    description=(
+                        f"Server '{server.name}' matched the injection "
+                        f"heuristic {len(findings) + hits_skipped} times; "
+                        f"{hits_skipped} further matches were suppressed to "
+                        "keep the report bounded. Re-scan with a custom "
+                        "rule or inspect the raw config for the full list."
+                    ),
+                    evidence=(
+                        Evidence(
+                            kind="source-range",
+                            summary=(
+                                f"{server.name}: {hits_skipped} suppressed tool-poisoning hits"
+                            ),
                             path=str(config.path),
                         ),
                     ),

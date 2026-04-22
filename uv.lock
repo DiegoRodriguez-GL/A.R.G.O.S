@@ -54,6 +54,7 @@ dependencies = [
     { name = "argos-redteam" },
     { name = "argos-scanner" },
     { name = "pygments" },
+    { name = "pyyaml" },
     { name = "rich" },
     { name = "typer" },
 ]
@@ -64,6 +65,7 @@ requires-dist = [
     { name = "argos-redteam", editable = "packages/argos-redteam" },
     { name = "argos-scanner", editable = "packages/argos-scanner" },
     { name = "pygments", specifier = ">=2.20.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "rich", specifier = ">=13.8.1" },
     { name = "typer", specifier = ">=0.12.5" },
 ]
@@ -198,14 +200,12 @@ version = "0.0.1"
 source = { editable = "packages/argos-rules" }
 dependencies = [
     { name = "argos-core" },
-    { name = "jsonschema" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
-    { name = "jsonschema", specifier = ">=4.23.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
@@ -217,6 +217,7 @@ dependencies = [
     { name = "argos-core" },
     { name = "argos-rules" },
     { name = "pydantic" },
+    { name = "pyyaml" },
 ]
 
 [package.metadata]
@@ -224,6 +225,7 @@ requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
     { name = "argos-rules", editable = "packages/argos-rules" },
     { name = "pydantic", specifier = ">=2.9.2" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
 [[package]]

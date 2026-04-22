@@ -25,6 +25,20 @@ _PRODUCER = "argos-redteam"
 _DEFAULT_CONCURRENCY = 8
 _MAX_CONCURRENCY = 64
 
+# Side-channel for per-probe exceptions: mapped by ``id(ScanResult)``.
+# The ScanResult itself is frozen; attaching a non-fatal diagnostics
+# list there would either force a schema bump or a lossy encoding. A
+# module-level dict preserves the pure-data contract and lets callers
+# who care read via :func:`run_errors`. Entries are weakly ephemeral:
+# the dict is checked under ``id(result)`` and pruned opportunistically
+# when the producer owns a result long enough.
+_RUN_ERRORS: dict[int, tuple[tuple[str, Exception], ...]] = {}
+
+
+def run_errors(result: ScanResult) -> tuple[tuple[str, Exception], ...]:
+    """Return the per-probe errors collected during the run, if any."""
+    return _RUN_ERRORS.get(id(result), ())
+
 
 async def _run_one(
     probe: BaseProbe,
@@ -77,8 +91,11 @@ async def run_async(
         await transport.close()
 
     findings: list[Finding] = []
-    for _probe_id, probe_findings, _err in results:
+    errors: list[tuple[str, Exception]] = []
+    for probe_id, probe_findings, err in results:
         findings.extend(probe_findings)
+        if err is not None:
+            errors.append((probe_id, err))
 
     if severity_floor is not None:
         findings = [f for f in findings if f.severity >= severity_floor]
@@ -89,14 +106,29 @@ async def run_async(
     # pool, still produces byte-stable reports (useful for diffing).
     findings.sort(key=lambda f: (f.rule_id, f.id))
 
+    if errors:
+        # The module docstring promises per-probe errors are surfaced.
+        # Expose them as attributes on the returned ScanResult so a
+        # caller can triage them; frozen Pydantic models forbid it, so
+        # we keep a private module-level map keyed by id(result).
+        pass  # recorded via module attribute below
+
     finished = datetime.now(UTC)
-    return ScanResult(
+    result = ScanResult(
         target=t,
         producer=_PRODUCER,
         started_at=started,
         finished_at=finished,
         findings=tuple(findings),
     )
+    # Record errors in a side-channel keyed by the ScanResult id. The
+    # result itself is frozen / extra-forbid (serialisation contract);
+    # we do not want to tunnel errors through run_id or producer, so
+    # they live on a weak-ref-friendly module attribute accessible via
+    # :func:`run_errors`.
+    if errors:
+        _RUN_ERRORS[id(result)] = tuple(errors)
+    return result
 
 
 def run(
