@@ -105,6 +105,16 @@ def redteam(
         float,
         typer.Option("--timeout", help="Per-request timeout in seconds."),
     ] = 30.0,
+    max_requests: Annotated[
+        int | None,
+        typer.Option(
+            "--max-requests",
+            help=(
+                "Denial-of-wallet cap: refuse to talk to the agent more than "
+                "N times total (across probes + retries). Leave unset for no cap."
+            ),
+        ),
+    ] = None,
     output_format: Annotated[
         str,
         typer.Option("--format", "-f", help="Output format: table or jsonl."),
@@ -130,6 +140,7 @@ def redteam(
         endpoint=target,
         headers=headers,
         timeout_seconds=timeout_seconds,
+        max_requests=max_requests,
     )
 
     try:

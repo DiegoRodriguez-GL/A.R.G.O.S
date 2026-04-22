@@ -73,12 +73,18 @@ class HttpTransport(AgentTransport):
         *,
         max_retries: int = 2,
         backoff_seconds: float = 0.5,
+        max_requests: int | None = None,
     ) -> None:
         self.endpoint = endpoint
         self.headers = dict(headers or {})
         self.timeout_seconds = timeout_seconds
         self.max_retries = max(0, int(max_retries))
         self.backoff_seconds = max(0.0, float(backoff_seconds))
+        # Denial-of-wallet guard: if a run calls the agent more than
+        # ``max_requests`` times the transport fails closed. None means
+        # unbounded (compatible with prior behaviour).
+        self.max_requests = None if max_requests is None else max(0, int(max_requests))
+        self._sent_count = 0
         self.headers.setdefault("User-Agent", _DEFAULT_USER_AGENT)
         self._client: httpx.AsyncClient | None = None
         self._client_lock = asyncio.Lock()
@@ -91,6 +97,18 @@ class HttpTransport(AgentTransport):
         return self._client
 
     async def send(self, transcript: Transcript) -> Message:
+        # Enforce the denial-of-wallet budget BEFORE any network work so
+        # a misconfigured probe set cannot drive traffic past the cap
+        # while we are already mid-retry on a 503.
+        if self.max_requests is not None and self._sent_count >= self.max_requests:
+            msg = (
+                f"request budget exhausted: max_requests={self.max_requests} "
+                f"reached for {self.endpoint}; refusing further calls to "
+                "protect against denial-of-wallet runs"
+            )
+            raise TransportError(msg)
+        self._sent_count += 1
+
         payload = {
             "messages": [{"role": m.role.value, "content": m.content} for m in transcript.messages],
         }
