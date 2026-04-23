@@ -1,0 +1,68 @@
+{#
+  Single finding detail card. Shows severity badge, rule id, title,
+  description, compliance refs, evidence (truncated with gradient fade)
+  and the proposed remediation.
+
+  Context:
+    finding  Finding
+    severity_key  callable Severity -> str
+#}
+<article class="finding-card" id="finding-{{ finding.id }}">
+  <header class="finding-header">
+    <span class="finding-sev-badge sev-{{ severity_key(finding.severity) }}">
+      {{ finding.severity.value.upper() }}
+    </span>
+    <span class="finding-rule-id">{{ finding.rule_id }}</span>
+    <h3 class="finding-title">{{ finding.title }}</h3>
+  </header>
+
+  <div class="finding-section">
+    <div class="finding-section-title">Descripcion</div>
+    <p>{{ finding.description }}</p>
+  </div>
+
+  {% if finding.compliance_refs %}
+  <div class="finding-section">
+    <div class="finding-section-title">Compliance</div>
+    <div class="finding-compliance">
+      {% for ref in finding.compliance_refs %}
+      <span class="finding-compliance-chip">{{ ref }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if finding.evidence %}
+  {% for ev in finding.evidence %}
+  <div class="finding-section">
+    <div class="finding-section-title">
+      Evidencia {{ loop.index if finding.evidence | length > 1 }} &middot; {{ ev.kind }}
+    </div>
+    {% if ev.summary %}
+    <p style="font-size: 9pt; color: var(--argos-color-ink-500); margin-bottom: 1.5mm;">
+      {{ ev.summary }}
+    </p>
+    {% endif %}
+    <div class="finding-evidence">
+      {%- if ev.kind == 'request-response' -%}
+        {%- if ev.request -%}&rsaquo;&rsaquo; REQUEST&#10;{{ ev.request }}&#10;&#10;{%- endif -%}
+        {%- if ev.response -%}&lsaquo;&lsaquo; RESPONSE&#10;{{ ev.response }}{%- endif -%}
+      {%- elif ev.kind == 'source-range' -%}
+        {{ ev.path }}{% if ev.line_start %}:{{ ev.line_start }}{% if ev.line_end %}-{{ ev.line_end }}{% endif %}{% endif %}
+      {%- elif ev.kind == 'trace' -%}
+        trace_id={{ ev.trace_id }}{% if ev.span_id %} span_id={{ ev.span_id }}{% endif %}
+      {%- else -%}
+        {{ ev.blob or '' }}
+      {%- endif -%}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if finding.remediation %}
+  <div class="finding-section">
+    <div class="finding-section-title">Remediacion</div>
+    <p>{{ finding.remediation }}</p>
+  </div>
+  {% endif %}
+</article>

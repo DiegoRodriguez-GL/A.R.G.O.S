@@ -1,0 +1,39 @@
+{#
+  Findings index: a compact table with one row per finding, ordered by
+  severity descending then by rule_id. Acts as a quick triage list and a
+  navigation aid (anchors link to the detailed cards further down).
+
+  Context:
+    findings  list[Finding]   already sorted
+    severity_key  callable str -> str   (e.g. Severity -> 'critical')
+#}
+<section class="section" id="findings-index">
+  <h2 class="section-title"><span class="section-number">4.</span> Indice de hallazgos</h2>
+
+  {% if findings %}
+  <table class="findings-table">
+    <thead>
+      <tr>
+        <th class="cell-severity">Sev</th>
+        <th class="cell-id">Regla</th>
+        <th>Titulo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in findings %}
+      <tr>
+        <td class="cell-severity sev-{{ severity_key(f.severity) }}">
+          {{ f.severity.value.upper() }}
+        </td>
+        <td class="cell-id">{{ f.rule_id }}</td>
+        <td>{{ f.title }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-500);">
+    Sin hallazgos en esta ejecucion.
+  </p>
+  {% endif %}
+</section>

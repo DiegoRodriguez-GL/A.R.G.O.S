@@ -1,0 +1,52 @@
+{#
+  Compliance heatmap: rows are the OWASP ASI top-10 categories, columns
+  are the four cross-reference frameworks (NIST, EU AI Act, CSA AICM,
+  ISO/IEC 42001). Each cell shows whether at least one finding in this
+  run cites a control from that framework for the given ASI category
+  (full hit = green), some related control (partial = pale green) or
+  nothing (miss = blank gray).
+
+  Context:
+    frameworks   list[{ "key": "nist_ai_rmf", "label": "NIST AI RMF" }]
+    matrix_rows  list[{ "asi": "ASI01",
+                        "label": "Memory Poisoning",
+                        "cells": [{"state": "hit"|"partial"|"miss",
+                                   "controls": ["MS-2.6", ...]}, ...] }]
+#}
+<section class="section" id="compliance">
+  <h2 class="section-title"><span class="section-number">3.</span> Matriz de compliance cruzada</h2>
+
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700); margin-bottom: 4mm;">
+    Cada celda indica la presencia en este run de un hallazgo cuya referencia
+    de compliance invoca el control correspondiente. Verde solido es una
+    cobertura directa; verde suave es una cobertura relacionada; celda vacia
+    significa que ningun hallazgo cita ese marco para la categoria indicada.
+  </p>
+
+  <table class="compliance-matrix">
+    <thead>
+      <tr>
+        <th style="text-align: left; padding-left: 3mm;">OWASP ASI</th>
+        {% for fw in frameworks %}
+        <th>{{ fw.label }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in matrix_rows %}
+      <tr>
+        <th>{{ row.asi }} &middot; {{ row.label }}</th>
+        {% for cell in row.cells %}
+        <td class="cov-{{ cell.state }}" title="{{ cell.controls | join(', ') }}">
+          {% if cell.controls %}
+            {{ cell.controls | join(', ') }}
+          {% else %}
+            &mdash;
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>

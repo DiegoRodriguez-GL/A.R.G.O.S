@@ -1,0 +1,656 @@
+/*
+ * Report-specific styles. Self-contained: the report is shipped as a
+ * single HTML file and must render offline without any external font,
+ * image or script. Aesthetic mirrors the Greenlock Reporter design
+ * language (dark cover header, emerald accent, severity-coded cards)
+ * adapted to ARGOS content (MCP configs and agent endpoints instead of
+ * client audits; OWASP ASI instead of OWASP Top 10).
+ */
+
+/* ===== PRINT SIZING =====================================================
+ * A4 page with modest side margins. Gotenberg / print preview / "save as
+ * PDF" all respect these; the report is meant to double as a binder-ready
+ * PDF without a separate "print stylesheet".
+ */
+@page {
+  size: A4;
+  margin: 14mm 14mm 18mm 14mm;
+}
+
+.argos-report {
+  font-family: var(--argos-font-sans);
+  color: var(--argos-color-midnight);
+  font-size: 10pt;
+  line-height: 1.55;
+  background: var(--argos-color-paper);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.argos-report .page-break {
+  page-break-before: always;
+}
+
+/* ===== COVER PAGE =======================================================
+ * The cover is a single full-page block: dark mesh header + emerald accent
+ * bar at the dark/light boundary + content on paper below.
+ */
+.cover {
+  position: relative;
+  height: 268mm;               /* body height after @page margins on A4 */
+  overflow: hidden;
+  page-break-after: always;
+  margin: -14mm -14mm 0 -14mm;  /* edge-to-edge against the page margin */
+}
+
+.cover-mesh {
+  position: relative;
+  height: 74mm;
+  background: var(--argos-color-night);
+  overflow: hidden;
+}
+
+.cover-mesh svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.55;
+}
+
+.cover-accent {
+  position: absolute;
+  top: 49mm;
+  right: 0;
+  width: 10mm;
+  height: 50mm;
+  background: var(--argos-color-green-500);
+  z-index: 10;
+}
+
+.cover-content {
+  position: absolute;
+  top: 74mm;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16mm 30mm 10mm 30mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cover-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 14mm;
+}
+
+.cover-brand-mark {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: var(--argos-color-night);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3mm;
+}
+
+.cover-brand-mark svg {
+  width: 40px;
+  height: 40px;
+  color: var(--argos-color-green-400);
+}
+
+.cover-brand-label {
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--argos-color-night);
+}
+
+.cover-brand-sublabel {
+  font-size: 7pt;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--argos-color-ink-500);
+  margin-top: 0.5mm;
+}
+
+.cover-date {
+  font-size: 14pt;
+  font-weight: 600;
+  color: var(--argos-color-green-500);
+  margin-bottom: 12mm;
+  font-variant-numeric: tabular-nums;
+}
+
+.cover-title {
+  text-align: center;
+  margin-bottom: 12mm;
+}
+
+.cover-title-main {
+  font-size: 34pt;
+  font-weight: 800;
+  color: var(--argos-color-night);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.cover-title-sub {
+  font-size: 18pt;
+  font-weight: 600;
+  color: var(--argos-color-midnight);
+  line-height: 1.2;
+  margin-top: 3mm;
+}
+
+.cover-target {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--argos-color-green-500);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10mm;
+  text-align: center;
+  word-break: break-all;
+  max-width: 150mm;
+}
+
+.cover-description {
+  border-left: 3px solid var(--argos-color-green-500);
+  padding-left: 5mm;
+  max-width: 140mm;
+  margin-bottom: 6mm;
+}
+
+.cover-description p {
+  font-size: 9.5pt;
+  color: var(--argos-color-ink-700);
+  line-height: 1.65;
+  text-align: justify;
+}
+
+.cover-meta {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3mm 8mm;
+  font-family: var(--argos-font-mono);
+  font-size: 7pt;
+  color: var(--argos-color-ink-500);
+  width: 100%;
+  max-width: 150mm;
+}
+
+.cover-meta dt {
+  font-weight: 700;
+  color: var(--argos-color-ink-700);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cover-meta dd {
+  color: var(--argos-color-ink-700);
+  word-break: break-all;
+}
+
+/* ===== SECTION CHROME =================================================== */
+.section {
+  margin-bottom: 10mm;
+}
+
+.section-number {
+  font-weight: 800;
+  color: var(--argos-color-night);
+}
+
+.section-title {
+  font-size: 18pt;
+  font-weight: 700;
+  color: var(--argos-color-night);
+  margin-bottom: 4mm;
+  page-break-after: avoid;
+}
+
+.subsection-title {
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--argos-color-night);
+  margin-top: 6mm;
+  margin-bottom: 3mm;
+  padding-bottom: 1.5mm;
+  border-bottom: 0.5px solid var(--argos-color-green-500);
+  page-break-after: avoid;
+}
+
+/* ===== TOC =============================================================== */
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  padding: 1.5mm 0;
+  border-bottom: 1px dotted var(--argos-color-ink-300);
+  font-size: 9pt;
+}
+
+.toc-item:last-child {
+  border-bottom: none;
+}
+
+.toc-number {
+  font-weight: 700;
+  color: var(--argos-color-green-500);
+  min-width: 12mm;
+}
+
+.toc-text {
+  color: var(--argos-color-midnight);
+  flex: 1;
+}
+
+/* ===== INFO TABLE ======================================================== */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--argos-color-ink-300);
+  margin-bottom: 6mm;
+}
+
+.info-table th,
+.info-table td {
+  padding: 2mm 3mm;
+  font-size: 8.5pt;
+  text-align: left;
+  vertical-align: middle;
+  border: 1px solid var(--argos-color-ink-300);
+}
+
+.info-table th {
+  font-weight: 700;
+  color: var(--argos-color-ink-700);
+  background: var(--argos-color-ink-50);
+  width: 35%;
+}
+
+.info-table td {
+  color: var(--argos-color-midnight);
+}
+
+.info-table code {
+  font-family: var(--argos-font-mono);
+  font-size: 8pt;
+  background: var(--argos-color-ink-100);
+  padding: 0.3mm 1.5mm;
+  border-radius: 3px;
+}
+
+/* ===== METHODOLOGY BOX =================================================== */
+.methodology-box {
+  background: var(--argos-color-green-50);
+  border: 1px solid var(--argos-color-green-100);
+  border-radius: 6px;
+  padding: 5mm;
+  margin: 4mm 0 6mm;
+}
+
+.methodology-box-title {
+  font-size: 10pt;
+  font-weight: 700;
+  color: var(--argos-color-green-900);
+  margin-bottom: 2mm;
+}
+
+.methodology-box p {
+  font-size: 9pt;
+  color: var(--argos-color-ink-700);
+  line-height: 1.6;
+}
+
+.methodology-box p + p {
+  margin-top: 2mm;
+}
+
+/* ===== STATS GRID (executive summary) =================================== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3mm;
+  margin-bottom: 8mm;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 4mm 2mm;
+  border-radius: 6px;
+  border: 1px solid var(--argos-color-ink-200);
+}
+
+.stat-count {
+  font-size: 22pt;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 1mm;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 7pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/*
+ * Two tints per severity: a pale "card" style for the exec-summary
+ * stat cards, and a saturated "cell" style for the findings table.
+ */
+.stat-card.sev-critical { background: #fef2f2; border-color: #fecaca; }
+.stat-card.sev-critical .stat-count,
+.stat-card.sev-critical .stat-label { color: #991b1b; }
+
+.stat-card.sev-high { background: #fff7ed; border-color: #fed7aa; }
+.stat-card.sev-high .stat-count,
+.stat-card.sev-high .stat-label { color: #9a3412; }
+
+.stat-card.sev-medium { background: #fffbeb; border-color: #fde68a; }
+.stat-card.sev-medium .stat-count,
+.stat-card.sev-medium .stat-label { color: #92400e; }
+
+.stat-card.sev-low { background: #fefce8; border-color: #fef08a; }
+.stat-card.sev-low .stat-count,
+.stat-card.sev-low .stat-label { color: #854d0e; }
+
+.stat-card.sev-info { background: #ecfdf5; border-color: #bbf7d0; }
+.stat-card.sev-info .stat-count,
+.stat-card.sev-info .stat-label { color: #166534; }
+
+/* ===== FINDINGS TABLE (quick index) ===================================== */
+.findings-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1.5px solid var(--argos-color-ink-300);
+  margin-bottom: 6mm;
+}
+
+.findings-table thead th {
+  background: var(--argos-color-night);
+  color: var(--argos-color-paper);
+  font-size: 7.5pt;
+  font-weight: 700;
+  padding: 2mm;
+  text-align: left;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--argos-color-ink-700);
+}
+
+.findings-table tbody td {
+  padding: 2mm;
+  font-size: 8pt;
+  color: var(--argos-color-ink-700);
+  border: 1px solid var(--argos-color-ink-300);
+  vertical-align: middle;
+}
+
+.findings-table tbody tr:nth-child(even) td {
+  background: var(--argos-color-ink-50);
+}
+
+.findings-table .cell-severity {
+  width: 18mm;
+  text-align: center;
+  font-weight: 700;
+  font-size: 7.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.cell-severity.sev-critical { background: #7030A0 !important; color: var(--argos-color-paper) !important; }
+.cell-severity.sev-high     { background: #E53E3E !important; color: var(--argos-color-paper) !important; }
+.cell-severity.sev-medium   { background: #F6AD55 !important; color: var(--argos-color-night) !important; }
+.cell-severity.sev-low      { background: #F6E05E !important; color: var(--argos-color-night) !important; }
+.cell-severity.sev-info     { background: #C6F6D5 !important; color: var(--argos-color-night) !important; }
+
+.findings-table .cell-id {
+  font-family: var(--argos-font-mono);
+  font-size: 7.5pt;
+  color: var(--argos-color-ink-500);
+  width: 32mm;
+}
+
+/* ===== COMPLIANCE MATRIX ================================================ */
+.compliance-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--argos-color-ink-300);
+  margin-bottom: 6mm;
+}
+
+.compliance-matrix th,
+.compliance-matrix td {
+  padding: 2mm;
+  font-size: 7.5pt;
+  text-align: center;
+  border: 1px solid var(--argos-color-ink-300);
+  vertical-align: middle;
+}
+
+.compliance-matrix thead th {
+  background: var(--argos-color-night);
+  color: var(--argos-color-paper);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.compliance-matrix tbody th {
+  background: var(--argos-color-ink-50);
+  font-weight: 700;
+  color: var(--argos-color-night);
+  text-align: left;
+  padding-left: 3mm;
+}
+
+.compliance-matrix .cov-hit {
+  background: var(--argos-color-green-500);
+  color: var(--argos-color-paper);
+  font-weight: 700;
+}
+
+.compliance-matrix .cov-partial {
+  background: var(--argos-color-green-100);
+  color: var(--argos-color-green-900);
+  font-weight: 700;
+}
+
+.compliance-matrix .cov-miss {
+  background: var(--argos-color-paper);
+  color: var(--argos-color-ink-400);
+}
+
+/* ===== FINDING CARD (detail) ============================================ */
+.finding-card {
+  margin-bottom: 8mm;
+  page-break-inside: avoid;
+  border: 1px solid var(--argos-color-ink-200);
+  border-radius: 6px;
+  padding: 5mm;
+}
+
+.finding-header {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  margin-bottom: 4mm;
+}
+
+.finding-sev-badge {
+  display: inline-block;
+  padding: 1mm 3mm;
+  border-radius: 4px;
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.finding-sev-badge.sev-critical { background: #7030A0; color: var(--argos-color-paper); }
+.finding-sev-badge.sev-high     { background: #E53E3E; color: var(--argos-color-paper); }
+.finding-sev-badge.sev-medium   { background: #F6AD55; color: var(--argos-color-night); }
+.finding-sev-badge.sev-low      { background: #F6E05E; color: var(--argos-color-night); }
+.finding-sev-badge.sev-info     { background: #C6F6D5; color: var(--argos-color-night); }
+
+.finding-rule-id {
+  font-family: var(--argos-font-mono);
+  font-size: 8pt;
+  color: var(--argos-color-ink-500);
+  flex-shrink: 0;
+}
+
+.finding-title {
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--argos-color-night);
+  flex: 1;
+}
+
+.finding-section {
+  margin-bottom: 3mm;
+}
+
+.finding-section-title {
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--argos-color-ink-500);
+  margin-bottom: 1mm;
+}
+
+.finding-section p {
+  font-size: 9.5pt;
+  color: var(--argos-color-ink-700);
+  line-height: 1.6;
+}
+
+.finding-evidence {
+  background: var(--argos-color-night);
+  color: var(--argos-color-paper);
+  border-radius: 4px;
+  padding: 3mm 4mm;
+  font-family: var(--argos-font-mono);
+  font-size: 7.5pt;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 60mm;
+  overflow: hidden;
+  position: relative;
+}
+
+.finding-evidence::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8mm;
+  background: linear-gradient(to bottom, rgba(10,14,23,0), var(--argos-color-night));
+  pointer-events: none;
+}
+
+.finding-compliance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2mm;
+  margin-top: 1mm;
+}
+
+.finding-compliance-chip {
+  display: inline-block;
+  padding: 0.8mm 2.5mm;
+  border-radius: 3px;
+  font-size: 7pt;
+  font-weight: 600;
+  background: var(--argos-color-green-50);
+  color: var(--argos-color-green-900);
+  border: 0.5px solid var(--argos-color-green-100);
+  font-family: var(--argos-font-mono);
+  letter-spacing: 0.2px;
+}
+
+/* ===== SAFE AGENT STATE (no findings) =================================== */
+.safe-banner {
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  padding: 6mm;
+  border: 1px solid var(--argos-color-green-100);
+  background: var(--argos-color-green-50);
+  border-radius: 8px;
+  margin-bottom: 8mm;
+}
+
+.safe-banner-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--argos-color-green-500);
+  color: var(--argos-color-paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14pt;
+  flex-shrink: 0;
+}
+
+.safe-banner-text {
+  font-size: 10pt;
+  color: var(--argos-color-green-900);
+  line-height: 1.5;
+}
+
+.safe-banner-text strong {
+  font-weight: 700;
+}
+
+/* ===== SCREEN-ONLY REFINEMENT =========================================== */
+@media screen {
+  .argos-report {
+    max-width: 210mm;
+    margin: 0 auto;
+    box-shadow: var(--argos-shadow-md);
+    padding: 14mm;
+    background: var(--argos-color-paper);
+  }
+  .cover {
+    margin-left: -14mm;
+    margin-right: -14mm;
+  }
+}
+
+/* ===== PRINT POLISH ===================================================== */
+@media print {
+  .argos-report {
+    max-width: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .finding-card {
+    page-break-inside: avoid;
+  }
+}

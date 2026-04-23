@@ -52,6 +52,7 @@ source = { editable = "packages/argos-cli" }
 dependencies = [
     { name = "argos-core" },
     { name = "argos-redteam" },
+    { name = "argos-reporter" },
     { name = "argos-scanner" },
     { name = "pygments" },
     { name = "pyyaml" },
@@ -63,6 +64,7 @@ dependencies = [
 requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
     { name = "argos-redteam", editable = "packages/argos-redteam" },
+    { name = "argos-reporter", editable = "packages/argos-reporter" },
     { name = "argos-scanner", editable = "packages/argos-scanner" },
     { name = "pygments", specifier = ">=2.20.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },

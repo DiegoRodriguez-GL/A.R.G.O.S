@@ -1,59 +1,106 @@
 /*
- * Inline copy of design-system/tokens.css so reports render without external
- * requests. Kept in sync by the reporter's build step; never edited by hand.
+ * Inline copy of design-system/tokens.css kept in sync by the reporter's
+ * build step. Do not edit by hand -- edit design-system/tokens.json and
+ * rerun scripts/build_tokens.py.
+ *
+ * The second block of aliases (short names) is a stable surface the
+ * report templates rely on; it is derived from the generated tokens so
+ * upstream renames stay localised.
  */
 :root {
+  --argos-color-green-50: #ecfdf5;
+  --argos-color-green-100: #d1fae5;
+  --argos-color-green-400: #34d399;
+  --argos-color-green-500: #10b981;
   --argos-color-green-600: #059669;
   --argos-color-green-700: #047857;
-  --argos-color-green-500: #10b981;
-  --argos-color-green-400: #34d399;
-  --argos-color-green-100: #d1fae5;
-  --argos-color-green-50:  #ecfdf5;
-
-  --argos-color-ink-950: #030712;
-  --argos-color-ink-900: #111827;
-  --argos-color-ink-800: #1f2937;
-  --argos-color-ink-700: #374151;
-  --argos-color-ink-500: #6b7280;
-  --argos-color-ink-300: #d1d5db;
-  --argos-color-ink-200: #e5e7eb;
+  --argos-color-green-900: #064e3b;
+  --argos-color-ink-50: #f9fafb;
   --argos-color-ink-100: #f3f4f6;
-  --argos-color-ink-50:  #f9fafb;
-  --argos-color-paper:   #ffffff;
-
-  --argos-sev-critical: #991b1b;
-  --argos-sev-high:     #c2410c;
-  --argos-sev-medium:   #a16207;
-  --argos-sev-low:      #365314;
-  --argos-sev-info:     #1e40af;
-
-  --argos-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --argos-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-
-  --argos-fs-xs:   0.75rem;
-  --argos-fs-sm:   0.875rem;
-  --argos-fs-base: 1rem;
-  --argos-fs-lg:   1.125rem;
-  --argos-fs-xl:   1.25rem;
-  --argos-fs-2xl:  1.5rem;
-  --argos-fs-3xl:  1.875rem;
-  --argos-fs-4xl:  2.25rem;
-
-  --argos-sp-1: 0.25rem;
-  --argos-sp-2: 0.5rem;
-  --argos-sp-3: 0.75rem;
-  --argos-sp-4: 1rem;
-  --argos-sp-6: 1.5rem;
-  --argos-sp-8: 2rem;
-  --argos-sp-12: 3rem;
-  --argos-sp-16: 4rem;
-
+  --argos-color-ink-200: #e5e7eb;
+  --argos-color-ink-300: #d1d5db;
+  --argos-color-ink-400: #9ca3af;
+  --argos-color-ink-500: #6b7280;
+  --argos-color-ink-700: #374151;
+  --argos-color-ink-800: #1f2937;
+  --argos-color-ink-900: #111827;
+  --argos-color-ink-950: #030712;
+  --argos-color-paper: #ffffff;
+  --argos-color-night: #0a0e17;
+  --argos-color-midnight: #1a1a2e;
+  --argos-color-severity-critical: #7030A0;
+  --argos-color-severity-high: #E53E3E;
+  --argos-color-severity-medium: #F6AD55;
+  --argos-color-severity-low: #F6E05E;
+  --argos-color-severity-info: #C6F6D5;
+  --argos-typography-family-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --argos-typography-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --argos-typography-size-xs: 0.75rem;
+  --argos-typography-size-sm: 0.875rem;
+  --argos-typography-size-base: 1rem;
+  --argos-typography-size-lg: 1.125rem;
+  --argos-typography-size-xl: 1.25rem;
+  --argos-typography-size-2xl: 1.5rem;
+  --argos-typography-size-3xl: 1.875rem;
+  --argos-typography-size-4xl: 2.25rem;
+  --argos-typography-size-5xl: 3rem;
+  --argos-typography-weight-regular: 400;
+  --argos-typography-weight-medium: 500;
+  --argos-typography-weight-semibold: 600;
+  --argos-typography-weight-bold: 700;
+  --argos-spacing-0: 0;
+  --argos-spacing-1: 0.25rem;
+  --argos-spacing-2: 0.5rem;
+  --argos-spacing-3: 0.75rem;
+  --argos-spacing-4: 1rem;
+  --argos-spacing-6: 1.5rem;
+  --argos-spacing-8: 2rem;
+  --argos-spacing-12: 3rem;
+  --argos-spacing-16: 4rem;
+  --argos-spacing-24: 6rem;
+  --argos-layout-max-width-content: 72rem;
+  --argos-layout-max-width-prose: 40rem;
   --argos-radius-sm: 4px;
   --argos-radius-md: 6px;
   --argos-radius-lg: 8px;
-
+  --argos-radius-xl: 12px;
+  --argos-radius-full: 9999px;
+  --argos-shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
   --argos-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --argos-shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  --argos-motion-duration-fast: 120ms;
+  --argos-motion-duration-normal: 200ms;
+  --argos-motion-easing-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --argos-max-content: 72rem;
-  --argos-max-prose:   40rem;
+  /* ----- Short aliases used across the report templates. ---------- */
+  --argos-font-sans: var(--argos-typography-family-sans);
+  --argos-font-mono: var(--argos-typography-family-mono);
+
+  --argos-fs-xs:   var(--argos-typography-size-xs);
+  --argos-fs-sm:   var(--argos-typography-size-sm);
+  --argos-fs-base: var(--argos-typography-size-base);
+  --argos-fs-lg:   var(--argos-typography-size-lg);
+  --argos-fs-xl:   var(--argos-typography-size-xl);
+  --argos-fs-2xl:  var(--argos-typography-size-2xl);
+  --argos-fs-3xl:  var(--argos-typography-size-3xl);
+  --argos-fs-4xl:  var(--argos-typography-size-4xl);
+  --argos-fs-5xl:  var(--argos-typography-size-5xl);
+
+  --argos-sp-1:  var(--argos-spacing-1);
+  --argos-sp-2:  var(--argos-spacing-2);
+  --argos-sp-3:  var(--argos-spacing-3);
+  --argos-sp-4:  var(--argos-spacing-4);
+  --argos-sp-6:  var(--argos-spacing-6);
+  --argos-sp-8:  var(--argos-spacing-8);
+  --argos-sp-12: var(--argos-spacing-12);
+  --argos-sp-16: var(--argos-spacing-16);
+
+  --argos-sev-critical: var(--argos-color-severity-critical);
+  --argos-sev-high:     var(--argos-color-severity-high);
+  --argos-sev-medium:   var(--argos-color-severity-medium);
+  --argos-sev-low:      var(--argos-color-severity-low);
+  --argos-sev-info:     var(--argos-color-severity-info);
+
+  --argos-max-content: var(--argos-layout-max-width-content);
+  --argos-max-prose:   var(--argos-layout-max-width-prose);
 }

@@ -1,0 +1,88 @@
+{#
+  Methodology appendix: taxonomy sources, severity scale, reproducibility
+  statement and references. Provides the academic-grade trail that a
+  reviewer needs to understand WHY a given severity was assigned and
+  WHERE each finding's compliance ref points.
+#}
+<section class="section" id="methodology">
+  <h2 class="section-title"><span class="section-number">6.</span> Apendice metodologico</h2>
+
+  <h3 class="subsection-title">Taxonomia OWASP ASI</h3>
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700);">
+    Los identificadores <code>ASI01..ASI10</code> empleados por este
+    reporte siguen la taxonomia del documento OWASP
+    <em>Agentic AI &mdash; Threats and Mitigations v1.0</em> (febrero de 2025),
+    renumerada desde <code>T1..T10</code> hacia <code>ASI01..ASI10</code>
+    para uniformar el prefijo. El documento posterior
+    <em>OWASP Top 10 for Agentic Applications 2026</em> (diciembre de 2025)
+    reutiliza el prefijo con otro orden y titulos; la correspondencia
+    completa vive en <code>docs/asi-taxonomy-crossref.md</code>.
+  </p>
+
+  <h3 class="subsection-title">Escala de severidad</h3>
+  <table class="info-table">
+    <thead>
+      <tr>
+        <th style="width: 18%">Nivel</th>
+        <th style="width: 20%">CVSS base aproximado</th>
+        <th>Lectura operacional</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="finding-sev-badge sev-critical">CRITICAL</span></td>
+        <td>&ge; 9.0</td>
+        <td>Impacto inmediato: fuga de credenciales, ejecucion remota, bypass total de la politica de HITL.</td>
+      </tr>
+      <tr>
+        <td><span class="finding-sev-badge sev-high">HIGH</span></td>
+        <td>7.0 &ndash; 8.9</td>
+        <td>Compromiso serio: elevacion de privilegios, exfiltracion, impersonacion entre principales.</td>
+      </tr>
+      <tr>
+        <td><span class="finding-sev-badge sev-medium">MEDIUM</span></td>
+        <td>4.0 &ndash; 6.9</td>
+        <td>Degradacion operacional: denegacion de servicio parcial, hallucinacion con coste directo.</td>
+      </tr>
+      <tr>
+        <td><span class="finding-sev-badge sev-low">LOW</span></td>
+        <td>&lt; 4.0</td>
+        <td>Desviacion menor o hallazgo dependiente de precondiciones poco realistas.</td>
+      </tr>
+      <tr>
+        <td><span class="finding-sev-badge sev-info">INFO</span></td>
+        <td>&mdash;</td>
+        <td>Observacion sin impacto explotable; util para contexto.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">Reproducibilidad</h3>
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700);">
+    Cada hallazgo incluye un identificador de regla estable, la evidencia
+    minima para reproducir la deteccion y, cuando aplica, un rastro de
+    request/response redactado de secretos. El contenido de este reporte es
+    por tanto suficiente para auditar una segunda vez y verificar o refutar
+    cada entrada. Los identificadores de hallazgo <code>ARGOS-*</code> son
+    aleatorios por run, pero los <code>rule_id</code> son deterministas.
+  </p>
+
+  <h3 class="subsection-title">Referencias normativas</h3>
+  <ul style="list-style: none; padding: 0; margin: 2mm 0 0 0; font-size: 9pt; color: var(--argos-color-ink-700);">
+    <li style="padding: 1mm 0;">
+      &bull; OWASP Foundation. <em>Agentic Security Initiative.</em> 2024-2025.
+    </li>
+    <li style="padding: 1mm 0;">
+      &bull; NIST. <em>AI Risk Management Framework 1.0 (NIST AI 100-1).</em> Enero 2023.
+    </li>
+    <li style="padding: 1mm 0;">
+      &bull; Parlamento Europeo. <em>Regulation (EU) 2024/1689</em> (AI Act). Junio 2024.
+    </li>
+    <li style="padding: 1mm 0;">
+      &bull; Cloud Security Alliance. <em>AI Controls Matrix (AICM).</em> 2024.
+    </li>
+    <li style="padding: 1mm 0;">
+      &bull; ISO/IEC. <em>ISO/IEC 42001:2023 Information technology &mdash; AI management system.</em>
+    </li>
+  </ul>
+</section>

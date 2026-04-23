@@ -1,0 +1,79 @@
+{#
+  Overview section: scan metadata, TOC, scope paragraph and a
+  methodology callout box.
+
+  Context:
+    toc_entries    list[{ "num": "1", "title": "...", "anchor": "overview" }]
+    target_kind    str
+    target_locator str
+    producer       str
+    started_at     datetime
+    finished_at    datetime
+    duration_seconds  float
+    finding_total  int
+    methodology_version str
+#}
+<section class="section" id="overview">
+  <h2 class="section-title"><span class="section-number">1.</span> Resumen de la auditoria</h2>
+
+  <table class="info-table">
+    <tbody>
+      <tr>
+        <th>Objetivo</th>
+        <td><code>{{ target_locator }}</code></td>
+      </tr>
+      <tr>
+        <th>Tipo de objetivo</th>
+        <td>{{ target_kind }}</td>
+      </tr>
+      <tr>
+        <th>Producer</th>
+        <td><code>{{ producer }}</code></td>
+      </tr>
+      <tr>
+        <th>Inicio</th>
+        <td>{{ started_at.isoformat(timespec='seconds') }}</td>
+      </tr>
+      <tr>
+        <th>Fin</th>
+        <td>{{ finished_at.isoformat(timespec='seconds') }}</td>
+      </tr>
+      <tr>
+        <th>Duracion</th>
+        <td>{{ '%.2f' % duration_seconds }} segundos</td>
+      </tr>
+      <tr>
+        <th>Hallazgos totales</th>
+        <td><strong>{{ finding_total }}</strong></td>
+      </tr>
+      <tr>
+        <th>Metodologia</th>
+        <td><code>{{ methodology_version }}</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">Indice</h3>
+  <ul class="toc-list">
+    {% for entry in toc_entries %}
+    <li class="toc-item">
+      <span class="toc-number">{{ entry.num }}</span>
+      <span class="toc-text">{{ entry.title }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <div class="methodology-box">
+    <div class="methodology-box-title">Nota metodologica</div>
+    <p>
+      ARGOS aplica una metodologia doble. Para configuraciones MCP estaticas
+      evalua reglas determinitisticas (scanner). Para agentes en ejecucion
+      envia una bateria de probes ASI01 a ASI10 mapeadas a la taxonomia
+      OWASP Agentic AI Threats and Mitigations v1.0 (febrero 2025). Cada
+      hallazgo conserva un rastro de evidencia suficiente para reproducir
+      la deteccion, y se mapea automaticamente a los marcos de compliance
+      aplicables (NIST AI RMF 1.0, EU AI Act 2024/1689, CSA AICM,
+      ISO/IEC 42001:2023).
+    </p>
+  </div>
+</section>

@@ -29,7 +29,9 @@ def test_no_args_shows_help() -> None:
     assert "Usage" in combined
 
 
-def test_skeleton_subcommands_exit_with_code_2() -> None:
+def test_subcommands_without_required_args_exit_two() -> None:
+    # Every subcommand with a required argument must exit with code 2
+    # when invoked bare. proxy is still the only placeholder left.
     for sub in ("scan", "redteam", "proxy", "report"):
         result = runner.invoke(app, [sub])
-        assert result.exit_code == 2, f"{sub} should exit 2 until implemented"
+        assert result.exit_code == 2, f"{sub} should exit 2 without its required args"

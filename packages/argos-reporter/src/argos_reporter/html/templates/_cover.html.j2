@@ -1,0 +1,138 @@
+{#
+  Cover page. Dark mesh header with an ARGOS eye mark over a web of
+  network nodes, then an emerald accent bar at the boundary, then the
+  paper area with brand, scan title, target and metadata. Mirrors the
+  Greenlock Reporter cover while swapping the shield for an ARGOS-style
+  guardian-eye mark appropriate for an AI audit tool.
+
+  Context:
+    report_title        str, e.g. "Agent Security Audit"
+    report_subtitle     str | None
+    target_locator      str
+    target_kind         str (human label, e.g. "MCP configuration")
+    generated_at_human  str formatted date ("23 April 2026")
+    run_id              str | None
+    producer            str e.g. "argos-redteam"
+    methodology_version str e.g. "argos-1.0"
+#}
+<section class="cover">
+  <div class="cover-mesh" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="argos-cover-glow" cx="50%" cy="55%" r="55%">
+          <stop offset="0%" stop-color="#10b981" stop-opacity="0.18" />
+          <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="400" cy="230" rx="360" ry="220" fill="url(#argos-cover-glow)" />
+      <g stroke="#10b981" stroke-opacity="0.22" stroke-width="0.8" fill="none">
+        <line x1="80"  y1="60"  x2="200" y2="120" />
+        <line x1="200" y1="120" x2="350" y2="80"  />
+        <line x1="350" y1="80"  x2="500" y2="150" />
+        <line x1="500" y1="150" x2="650" y2="90"  />
+        <line x1="650" y1="90"  x2="750" y2="130" />
+        <line x1="120" y1="180" x2="250" y2="220" />
+        <line x1="250" y1="220" x2="400" y2="190" />
+        <line x1="400" y1="190" x2="550" y2="260" />
+        <line x1="550" y1="260" x2="700" y2="210" />
+        <line x1="60"  y1="300" x2="180" y2="340" />
+        <line x1="180" y1="340" x2="320" y2="300" />
+        <line x1="320" y1="300" x2="460" y2="360" />
+        <line x1="460" y1="360" x2="600" y2="310" />
+        <line x1="600" y1="310" x2="740" y2="370" />
+        <line x1="200" y1="120" x2="250" y2="220" />
+        <line x1="350" y1="80"  x2="400" y2="190" />
+        <line x1="500" y1="150" x2="550" y2="260" />
+        <line x1="120" y1="180" x2="180" y2="340" />
+        <line x1="250" y1="220" x2="320" y2="300" />
+        <line x1="400" y1="190" x2="460" y2="360" />
+        <line x1="550" y1="260" x2="600" y2="310" />
+      </g>
+      <g fill="#10b981">
+        <circle cx="80"  cy="60"  r="3"   opacity="0.7" />
+        <circle cx="200" cy="120" r="3.5" opacity="0.8" />
+        <circle cx="350" cy="80"  r="2.8" opacity="0.6" />
+        <circle cx="500" cy="150" r="4"   opacity="0.9" />
+        <circle cx="650" cy="90"  r="2.8" opacity="0.6" />
+        <circle cx="750" cy="130" r="3"   opacity="0.7" />
+        <circle cx="120" cy="180" r="2.8" opacity="0.6" />
+        <circle cx="250" cy="220" r="3.5" opacity="0.8" />
+        <circle cx="400" cy="190" r="4.5" opacity="1"   />
+        <circle cx="550" cy="260" r="3"   opacity="0.7" />
+        <circle cx="700" cy="210" r="3.5" opacity="0.8" />
+        <circle cx="60"  cy="300" r="2.5" opacity="0.5" />
+        <circle cx="180" cy="340" r="3"   opacity="0.7" />
+        <circle cx="320" cy="300" r="3.5" opacity="0.8" />
+        <circle cx="460" cy="360" r="2.8" opacity="0.6" />
+        <circle cx="600" cy="310" r="4"   opacity="0.9" />
+        <circle cx="740" cy="370" r="2.8" opacity="0.5" />
+      </g>
+      <g fill="#34d399">
+        <circle cx="400" cy="190" r="2"   opacity="0.9" />
+        <circle cx="500" cy="150" r="1.7" opacity="0.8" />
+      </g>
+    </svg>
+  </div>
+
+  <div class="cover-accent" aria-hidden="true"></div>
+
+  <div class="cover-content">
+    <div class="cover-brand">
+      <div class="cover-brand-mark" aria-label="ARGOS">
+        {# Guardian eye: circular iris plus network-node pupil. The shape
+           recalls the hundred-eyed mythological Argos while echoing the
+           mesh motif of the header. #}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <path d="M24 10 C 10 10, 4 24, 4 24 S 10 38, 24 38 S 44 24, 44 24 S 38 10, 24 10 Z"
+                stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" />
+          <circle cx="24" cy="24" r="7" stroke="currentColor" stroke-width="2.2" />
+          <circle cx="24" cy="24" r="2.6" fill="currentColor" />
+        </svg>
+      </div>
+      <div class="cover-brand-label">ARGOS</div>
+      <div class="cover-brand-sublabel">Agent Risk Governance &amp; Operational Security</div>
+    </div>
+
+    <div class="cover-date">{{ generated_at_human }}</div>
+
+    <div class="cover-title">
+      <div class="cover-title-main">{{ report_title }}</div>
+      {% if report_subtitle %}
+      <div class="cover-title-sub">{{ report_subtitle }}</div>
+      {% endif %}
+    </div>
+
+    <div class="cover-target">{{ target_kind }} &middot; {{ target_locator }}</div>
+
+    <div class="cover-description">
+      <p>
+        Este documento contiene los resultados de la auditoria ARGOS ejecutada
+        sobre el objetivo indicado. Las secciones siguientes resumen los hallazgos
+        por severidad, su mapeo a los marcos normativos aplicables (OWASP ASI,
+        NIST AI RMF, EU AI Act, CSA AICM, ISO/IEC 42001) y el detalle tecnico
+        con evidencia reproducible de cada deteccion.
+      </p>
+    </div>
+
+    <dl class="cover-meta">
+      <div>
+        <dt>Producer</dt>
+        <dd>{{ producer }}</dd>
+      </div>
+      <div>
+        <dt>Methodology</dt>
+        <dd>{{ methodology_version }}</dd>
+      </div>
+      {% if run_id %}
+      <div>
+        <dt>Run ID</dt>
+        <dd>{{ run_id }}</dd>
+      </div>
+      {% endif %}
+      <div>
+        <dt>Generated</dt>
+        <dd>{{ generated_at_human }}</dd>
+      </div>
+    </dl>
+  </div>
+</section>

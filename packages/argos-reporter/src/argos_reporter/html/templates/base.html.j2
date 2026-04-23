@@ -14,11 +14,13 @@
       {% include "_reset.css.j2" %}
       {% include "_tokens.css.j2" %}
       {% include "_base.css.j2" %}
+      {% include "_report.css.j2" %}
       {% block head_styles %}{% endblock %}
     </style>
     {% block head_extra %}{% endblock %}
   </head>
   <body>
+    {% block chrome_header %}
     <header class="argos-header">
       <div class="argos-container argos-row argos-between">
         <div class="argos-brand" aria-label="ARGOS">
@@ -32,17 +34,20 @@
         </div>
       </div>
     </header>
+    {% endblock %}
 
     <main class="argos-container argos-main">
       {% block content %}{% endblock %}
     </main>
 
+    {% block chrome_footer %}
     <footer class="argos-footer">
       <div class="argos-container argos-row argos-between">
         <span>ARGOS v{{ generator_version | default('0.0.0') }}</span>
         <span>AGPL-3.0-or-later &middot; open source</span>
       </div>
     </footer>
+    {% endblock %}
 
     {% block body_scripts %}{% endblock %}
   </body>
