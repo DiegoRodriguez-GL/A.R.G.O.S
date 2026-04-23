@@ -1,0 +1,67 @@
+{#
+  Master report template. Extends base.html.j2 but overrides the web
+  chrome (header/footer) with empty blocks: the report renders as a
+  single paper document, not a webapp page, and its cover already
+  carries its own branded header.
+
+  Context (all pre-computed by argos_reporter.render_html):
+    report_title        str
+    report_subtitle     str | None
+    target_kind         str
+    target_locator      str
+    producer            str
+    generated_at        datetime (used via isoformat)
+    generated_at_human  str formatted for the cover
+    run_id              str | None
+    methodology_version str
+    started_at, finished_at, duration_seconds
+    finding_total       int
+    severity_order      list[tuple]
+    worst_severity      str | None
+    category_rows       list[dict]
+    no_findings         bool
+    frameworks          list[dict]
+    matrix_rows         list[dict]
+    findings            list[Finding]
+    severity_key        callable
+    toc_entries         list[dict]
+    generator_version   str
+#}
+{% extends "base.html.j2" %}
+
+{% block title %}ARGOS Report &middot; {{ target_locator }}{% endblock %}
+
+{# Web chrome off: the report is a single document. #}
+{% block chrome_header %}{% endblock %}
+{% block chrome_footer %}{% endblock %}
+
+{% block content %}
+<div class="argos-report">
+  {% include "_cover.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_overview.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_summary.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_compliance_matrix.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_findings_index.html.j2" %}
+
+  {% if findings %}
+  <div class="page-break"></div>
+  <section class="section" id="findings-detail">
+    <h2 class="section-title"><span class="section-number">5.</span> Detalle de hallazgos</h2>
+    {% for finding in findings %}
+    {% include "_finding_card.html.j2" %}
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <div class="page-break"></div>
+  {% include "_methodology.html.j2" %}
+</div>
+{% endblock %}

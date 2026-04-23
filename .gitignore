@@ -191,6 +191,13 @@ tmp/
 .scratch/
 
 # =============================================================================
+# Report outputs (the reporter writes here by default; demo artefacts)
+# =============================================================================
+argos-report.html
+argos-demo-report.html
+*.report.html
+
+# =============================================================================
 # Secrets (defence in depth -- pre-commit also blocks via detect-private-key)
 # =============================================================================
 .env

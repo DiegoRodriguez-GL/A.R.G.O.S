@@ -1,0 +1,75 @@
+{#
+  Executive summary: severity counts as big stat cards, worst-severity
+  callout and a per-category (OWASP ASI) breakdown table.
+
+  Context:
+    severity_order  list[(label, key, count)]   e.g. [("Critical", "critical", 2), ...]
+    worst_severity  str | None
+    category_rows   list[{ "label": "ASI01", "total": n, "by_severity": {...} }]
+    no_findings     bool
+#}
+<section class="section" id="summary">
+  <h2 class="section-title"><span class="section-number">2.</span> Resumen ejecutivo</h2>
+
+  {% if no_findings %}
+    <div class="safe-banner">
+      <div class="safe-banner-icon">&check;</div>
+      <div class="safe-banner-text">
+        <strong>No se han detectado hallazgos.</strong><br>
+        Todas las probes activas en esta ejecucion han sido bloqueadas
+        por el objetivo. Esto no sustituye a una auditoria humana: revise
+        el alcance seleccionado y la politica de muestreo antes de emitir
+        un juicio definitivo.
+      </div>
+    </div>
+  {% else %}
+    <div class="stats-grid">
+      {% for label, key, count in severity_order %}
+      <div class="stat-card sev-{{ key }}">
+        <div class="stat-count">{{ count }}</div>
+        <div class="stat-label">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if worst_severity %}
+    <h3 class="subsection-title">Severidad maxima</h3>
+    <p>
+      La severidad maxima observada durante la ejecucion es
+      <strong>{{ worst_severity }}</strong>. Una severidad CRITICAL o HIGH
+      implica un impacto potencial directo sobre la integridad del agente
+      o sobre datos de negocio y debe priorizarse en la remediacion.
+    </p>
+    {% endif %}
+
+    {% if category_rows %}
+    <h3 class="subsection-title">Desglose por categoria OWASP ASI</h3>
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th style="width: 22%">Categoria</th>
+          <th style="width: 14%">Total</th>
+          <th>Criticas</th>
+          <th>Altas</th>
+          <th>Medias</th>
+          <th>Bajas</th>
+          <th>Info</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in category_rows %}
+        <tr>
+          <td><strong>{{ row.label }}</strong></td>
+          <td><strong>{{ row.total }}</strong></td>
+          <td>{{ row.by_severity.critical }}</td>
+          <td>{{ row.by_severity.high }}</td>
+          <td>{{ row.by_severity.medium }}</td>
+          <td>{{ row.by_severity.low }}</td>
+          <td>{{ row.by_severity.info }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  {% endif %}
+</section>

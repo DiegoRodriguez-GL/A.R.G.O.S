@@ -137,13 +137,21 @@ def test_bare_invocation_shows_help() -> None:
     assert r.exit_code in (0, 2)
 
 
-def test_skeleton_subcommands_exit_two_and_mention_module() -> None:
-    # Only proxy and report remain as placeholders. redteam is implemented (M4).
-    for sub, mod in [("proxy", "Module 5"), ("report", "Module 6")]:
-        r = runner.invoke(app, [sub])
-        assert r.exit_code == 2
-        combined = r.stdout + (r.stderr or "")
-        assert mod in combined
+def test_proxy_placeholder_exits_two_and_mentions_module() -> None:
+    # proxy is still a placeholder (M5 pending). redteam, report implemented.
+    r = runner.invoke(app, ["proxy"])
+    assert r.exit_code == 2
+    combined = r.stdout + (r.stderr or "")
+    assert "Module 5" in combined
+
+
+def test_report_command_without_input_exits_two_with_hint() -> None:
+    # report is implemented in M6; invoking it with no args must fail
+    # gracefully (exit 2) and point the user at --demo.
+    r = runner.invoke(app, ["report"])
+    assert r.exit_code == 2
+    combined = r.stdout + (r.stderr or "")
+    assert "missing input" in combined or "--demo" in combined
 
 
 # ---------- scan command: argument parsing -----------------------------
