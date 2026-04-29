@@ -17,13 +17,19 @@ pytestmark = pytest.mark.asyncio
 
 
 class TestMethodAllowlist:
-    async def test_no_allowlist_permits_everything(self) -> None:
+    async def test_no_allowlist_permits_everything_when_not_blocking(self) -> None:
+        # Empty allowlist + block_on_violation=False is valid: "log
+        # nothing, forward everything", useful for an observability
+        # deployment.
         sink = InMemoryFindingSink()
-        det = ScopeDetector(sink)
-        # No raise, no findings.
+        det = ScopeDetector(sink, block_on_violation=False)
         result = await det.on_request_in(Request(method="anything", id=1), new_context())
         assert result is None
         assert sink.findings == []
+
+    async def test_block_with_empty_allowlist_is_rejected_at_construction(self) -> None:
+        with pytest.raises(ValueError, match="block_on_violation=True"):
+            ScopeDetector(block_on_violation=True)
 
     async def test_method_in_allowlist_passes(self) -> None:
         sink = InMemoryFindingSink()

@@ -59,6 +59,18 @@ class ScopeDetector(ProxyDetector):
         super().__init__(sink)
         self._allowed_methods = tuple(allowed_methods)
         self._allowed_tools = tuple(allowed_tools)
+        # Operator footgun: ``block_on_violation=True`` with an empty
+        # allowlist is a no-op (everything passes through). Reject the
+        # combination at construction time so the misconfiguration
+        # surfaces immediately rather than silently disabling the
+        # detector. ``block_on_violation=False`` with an empty
+        # allowlist is fine -- it just means "log nothing".
+        if block_on_violation and not (self._allowed_methods or self._allowed_tools):
+            msg = (
+                "ScopeDetector with block_on_violation=True requires at least one "
+                "allowed_methods or allowed_tools entry; got both empty"
+            )
+            raise ValueError(msg)
         self._block = block_on_violation
 
     async def on_request_in(

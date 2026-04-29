@@ -89,12 +89,17 @@ class ForensicsStore:
         self._lock = asyncio.Lock()
 
     async def open(self) -> None:
-        if self._conn is not None:
-            return
-        # ``check_same_thread=False`` because asyncio runs on a single
-        # OS thread but the connection traverses await boundaries; the
-        # lock guarantees serialised access.
-        self._conn = await asyncio.to_thread(self._open_sync)
+        # Two coroutines awaiting ``open()`` simultaneously would both
+        # see ``self._conn is None`` before either ``to_thread`` call
+        # completes, leaving one connection orphaned. The lock makes
+        # the open idempotent under concurrent first-callers.
+        async with self._lock:
+            if self._conn is not None:
+                return
+            # ``check_same_thread=False`` because asyncio runs on a
+            # single OS thread but the connection traverses await
+            # boundaries; the lock guarantees serialised access.
+            self._conn = await asyncio.to_thread(self._open_sync)
 
     def _open_sync(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._path, check_same_thread=False)

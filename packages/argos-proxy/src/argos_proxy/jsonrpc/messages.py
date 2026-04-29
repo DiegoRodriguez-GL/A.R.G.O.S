@@ -44,7 +44,7 @@ from argos_proxy.jsonrpc.errors import JsonRpcProtocolError
 #: The single supported protocol version. The constant is duplicated
 #: here so message validation does not depend on importing the spec
 #: text at runtime.
-JSONRPC_VERSION: Final = "2.0"
+JSONRPC_VERSION: Final[Literal["2.0"]] = "2.0"  # noqa: PYI064
 
 #: A JSON-RPC 2.0 id. The spec allows string, number or null. We
 #: reject unbounded numbers (NaN/inf) and oversized strings at the
@@ -203,6 +203,14 @@ class Response(BaseModel):
         if not has_result and not has_error:
             msg = "response must contain exactly one of 'result' or 'error'"
             raise ValueError(msg)
+        # Reject ``Response(error=None)`` -- the field is "present" per
+        # ``model_fields_set`` but the value is null, which would make
+        # the serializer (value-based) and the validator (presence-based)
+        # disagree on which branch to emit. Forcing a non-None error
+        # keeps the model consistent end-to-end.
+        if has_error and self.error is None:
+            msg = "error field must not be None when explicitly set"
+            raise ValueError(msg)
         return self
 
     @property
@@ -273,6 +281,13 @@ def parse_payload(raw: str | bytes) -> Message | Batch:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
         msg = f"payload is not valid JSON: {exc}"
+        raise JsonRpcProtocolError(msg) from exc
+    except RecursionError as exc:
+        # Deeply-nested JSON (e.g. ``[[[[[[...]]]]]]``) blows Python's
+        # default recursion limit. Convert to a protocol error so the
+        # proxy treats it identically to other parse failures rather
+        # than crashing the connection.
+        msg = "payload nesting exceeds parser recursion limit"
         raise JsonRpcProtocolError(msg) from exc
     if isinstance(data, list):
         if not data:
