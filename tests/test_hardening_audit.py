@@ -14,6 +14,7 @@ Topics:
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +25,22 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 _ROOT = Path(__file__).resolve().parent.parent
+
+
+def _python_with_argos_installed() -> str:
+    """Return the venv Python that has the workspace packages, even
+    when ``sys.executable`` resolves to the bare system Python under
+    ``uv run pytest``."""
+    venv = os.environ.get("VIRTUAL_ENV")
+    if venv:
+        for candidate in (
+            Path(venv, "Scripts", "python.exe"),
+            Path(venv, "bin", "python"),
+            Path(venv, "bin", "python3"),
+        ):
+            if candidate.is_file():
+                return str(candidate)
+    return sys.executable
 
 
 # ------------------------------------------------------------------
@@ -290,7 +307,7 @@ def test_cli_scan_roundtrips_findings_from_jsonl(tmp_path: Path) -> None:
     out = tmp_path / "findings.jsonl"
     proc = subprocess.run(
         [
-            sys.executable,
+            _python_with_argos_installed(),
             "-m",
             "argos_cli",
             "scan",

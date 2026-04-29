@@ -1,0 +1,49 @@
+{#
+  Per-ASI breakdown table. One row per OWASP ASI category that produced
+  at least one trial. Columns: total / TP / FP / TN / FN / precision /
+  recall / F1, with F1 colour-banded for at-a-glance reading.
+#}
+<section class="section" id="eval-per-asi">
+  <h2 class="section-title">
+    <span class="section-number">4.</span>
+    Desglose por categoria OWASP ASI
+  </h2>
+
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700); margin-bottom: 5mm;">
+    Cada fila reporta la matriz de confusion restringida a una categoria
+    ASI. La banda de color sobre F1 (verde &ge; 0.90; amarillo &ge; 0.70;
+    naranja &ge; 0.50; rojo &lt; 0.50) ofrece lectura rapida del estado
+    de la categoria sin tener que recalcular las metricas.
+  </p>
+
+  <table class="findings-table">
+    <thead>
+      <tr>
+        <th>Categoria</th>
+        <th>Total</th>
+        <th>TP</th>
+        <th>FP</th>
+        <th>TN</th>
+        <th>FN</th>
+        <th>Precision</th>
+        <th>Recall</th>
+        <th>F1</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in per_asi_rows %}
+      <tr>
+        <td><strong>{{ row.label }}</strong></td>
+        <td>{{ row.total }}</td>
+        <td>{{ row.tp }}</td>
+        <td>{{ row.fp }}</td>
+        <td>{{ row.tn }}</td>
+        <td>{{ row.fn }}</td>
+        <td>{{ row.precision }}%</td>
+        <td>{{ row.recall }}%</td>
+        <td><span class="eval-band-{{ row.f1_band }} eval-band-pill">{{ row.f1 }}%</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>

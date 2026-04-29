@@ -1,0 +1,90 @@
+{#
+  Methodology appendix for the evaluation report. Cites the statistical
+  references the dissertation uses and discusses validity threats.
+#}
+<section class="section" id="eval-methodology">
+  <h2 class="section-title">
+    <span class="section-number">6.</span>
+    Apendice metodologico
+  </h2>
+
+  <h3 class="subsection-title">Diseno experimental</h3>
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700);">
+    El benchmark sigue el patron de "construct validity por construccion":
+    seis agentes-laboratorio implementados como funciones puras del
+    transcript de entrada, con vulnerabilidades conocidas declaradas en
+    su <code>vulnerability_surface</code>. El ground truth derivado de
+    estas declaraciones es el oraculo contra el que se mide ARGOS.
+  </p>
+
+  <h3 class="subsection-title">Metricas</h3>
+  <table class="info-table">
+    <tbody>
+      <tr>
+        <th>Precision</th>
+        <td>TP / (TP + FP). Reporta cuantas de las detecciones positivas eran reales.</td>
+      </tr>
+      <tr>
+        <th>Recall (sensitivity)</th>
+        <td>TP / (TP + FN). Reporta cuantos ataques reales se detectaron.</td>
+      </tr>
+      <tr>
+        <th>Specificity</th>
+        <td>TN / (TN + FP). Reporta cuantos no-ataques se rechazaron correctamente.</td>
+      </tr>
+      <tr>
+        <th>Accuracy</th>
+        <td>(TP + TN) / total. Util en datasets balanceados; menos util cuando una clase es rara.</td>
+      </tr>
+      <tr>
+        <th>F1 score</th>
+        <td>Media armonica de precision y recall. Sensible a desbalance entre los dos terminos.</td>
+      </tr>
+      <tr>
+        <th>MCC</th>
+        <td>Coeficiente de Matthews; rango [-1, +1]. Recomendado en datasets desbalanceados (Chicco &amp; Jurman, 2020).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">Intervalos de confianza</h3>
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700);">
+    Los CIs al {{ confidence_pct }}% mostrados sobre las proporciones
+    (precision, recall, accuracy, specificity) usan la formula de Wilson
+    (Wilson, 1927). El intervalo siempre cae dentro de [0, 1] y es
+    estable cerca de 0 y 1, donde la aproximacion normal falla.
+  </p>
+
+  <h3 class="subsection-title">Amenazas a la validez</h3>
+  <ul style="list-style: none; padding: 2mm 0 0 0; font-size: 9pt; color: var(--argos-color-ink-700);">
+    <li style="padding: 1mm 0;">
+      <strong>Validez de constructo:</strong> los agentes-laboratorio
+      simulan vulnerabilidades especificas; pueden no representar todas
+      las formas en que un agente real falla. Mitigacion: cada agente
+      cubre tres o mas categorias ASI; los probes incluyen casos de
+      borde (negaciones, escapes, codepoints unicode adversariales).
+    </li>
+    <li style="padding: 1mm 0;">
+      <strong>Validez interna:</strong> el determinismo total del banco
+      elimina la varianza de muestreo que un LLM real introduciria.
+      El anexo de transferibilidad (cuando aplique) discute la
+      generalizacion a endpoints estocasticos.
+    </li>
+    <li style="padding: 1mm 0;">
+      <strong>Validez externa:</strong> el resultado se aplica al
+      catalogo OWASP ASI v1.0 de febrero 2025; otras taxonomias
+      (Top 10 for Agentic Applications 2026) usan codigos identicos
+      con asignaciones distintas, ver <code>docs/asi-taxonomy-crossref.md</code>.
+    </li>
+  </ul>
+
+  <h3 class="subsection-title">Referencias</h3>
+  <ul style="list-style: none; padding: 2mm 0 0 0; font-size: 9pt; color: var(--argos-color-ink-700);">
+    <li style="padding: 1mm 0;">&bull; Wilson, E. B. (1927). <em>Probable Inference, the Law of Succession, and Statistical Inference.</em> JASA 22(158).</li>
+    <li style="padding: 1mm 0;">&bull; Newcombe, R. G. (1998). <em>Two-sided confidence intervals for the single proportion.</em> Statistics in Medicine 17.</li>
+    <li style="padding: 1mm 0;">&bull; Matthews, B. W. (1975). <em>Comparison of the predicted and observed secondary structure of T4 phage lysozyme.</em> BBA 405.</li>
+    <li style="padding: 1mm 0;">&bull; Chicco, D., Jurman, G. (2020). <em>The advantages of the Matthews correlation coefficient over F1 score and accuracy in binary classification.</em></li>
+    <li style="padding: 1mm 0;">&bull; Efron, B. (1979). <em>Bootstrap methods: another look at the jackknife.</em> Annals of Statistics 7.</li>
+    <li style="padding: 1mm 0;">&bull; Wohlin, C. et al. (2012). <em>Experimentation in Software Engineering.</em> Springer.</li>
+  </ul>
+</section>

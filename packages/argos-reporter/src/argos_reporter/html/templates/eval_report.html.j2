@@ -1,0 +1,38 @@
+{#
+  Master template for the evaluation report. Reuses the cover and
+  methodology box of the audit report so both documents look like
+  siblings, but the body contains evaluation-specific sections:
+  metrics with CIs, confusion matrix, per-ASI and per-agent
+  breakdowns. Inherits the strict CSP from base.html.j2.
+#}
+{% extends "base.html.j2" %}
+
+{% block title %}ARGOS Evaluation &middot; {{ target_locator }}{% endblock %}
+
+{# Web chrome off: this is a single document. #}
+{% block chrome_header %}{% endblock %}
+{% block chrome_footer %}{% endblock %}
+
+{% block content %}
+<div class="argos-report">
+  {% include "_cover.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_eval_overview.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_eval_metrics.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_eval_confusion.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_eval_per_asi.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_eval_per_agent.html.j2" %}
+
+  <div class="page-break"></div>
+  {% include "_eval_methodology.html.j2" %}
+</div>
+{% endblock %}
