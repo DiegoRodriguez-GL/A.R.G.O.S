@@ -53,15 +53,14 @@ def status() -> None:
         table.add_row(key, val)
     console.print(table)
 
+    console.print()
     console.print(
         Text.assemble(
-            ("Try ", "argos.muted"),
-            ("`argos rules list`", "argos.code"),
-            (", ", "argos.muted"),
-            ("`argos compliance list`", "argos.code"),
-            (", ", "argos.muted"),
-            ("`argos scan <path>`", "argos.code"),
-            (".", "argos.muted"),
+            ("New here? Run ", "argos.muted"),
+            ("argos demo", "argos.brand"),
+            (" for a 10-second guided tour, or ", "argos.muted"),
+            ("argos quickstart", "argos.brand"),
+            (" for the cheat sheet.", "argos.muted"),
         ),
     )
     raise typer.Exit(code=0)

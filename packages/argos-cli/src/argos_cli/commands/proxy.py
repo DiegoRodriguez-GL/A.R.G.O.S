@@ -62,7 +62,21 @@ proxy_app = typer.Typer(
 # ---------------------------------------------------------------------------
 
 
-@proxy_app.command("bench")
+_BENCH_EPILOG = """\
+[bold]Examples[/]:
+
+  [cyan]argos proxy bench[/]
+    1000 round-trips with the full detector chain (default)
+
+  [cyan]argos proxy bench --no-detectors -n 5000[/]
+    isolate transport overhead, longer sample
+
+  [cyan]argos proxy bench --budget-ms 25[/]
+    tighter latency budget; exit 1 if p95 exceeds it (CI gate)
+"""
+
+
+@proxy_app.command("bench", epilog=_BENCH_EPILOG)
 def bench(
     iterations: Annotated[
         int,
@@ -258,7 +272,27 @@ def _parse_upstream_url(value: str) -> tuple[str, tuple[str, ...] | tuple[str, i
     raise typer.BadParameter(msg)
 
 
-@proxy_app.command("run")
+_RUN_EPILOG = """\
+[bold]Examples[/]:
+
+  [cyan]argos proxy run -u stdio:'python -m my_mcp_server'[/]
+    minimal invocation, defaults to listen 127.0.0.1:8765
+
+  [cyan]argos proxy run -u stdio:'npx pkg' -l 127.0.0.1:9000[/]
+    custom listen port
+
+  [cyan]argos proxy run -u tcp:127.0.0.1:9000 --duration 30[/]
+    TCP upstream, auto-stop after 30 seconds (CI smoke)
+
+  [cyan]argos proxy run -u stdio:'cmd' --no-pii --allow-tool 'safe.*'[/]
+    disable PII detector, restrict tools to a glob
+
+[bold]Stop[/] with Ctrl+C; active sessions drain for [cyan]--drain-timeout[/]
+seconds before any straggler is cancelled.
+"""
+
+
+@proxy_app.command("run", epilog=_RUN_EPILOG)
 def run(
     upstream: Annotated[
         str,
