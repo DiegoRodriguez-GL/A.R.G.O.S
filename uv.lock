@@ -100,12 +100,14 @@ version = "0.0.1"
 source = { editable = "packages/argos-eval" }
 dependencies = [
     { name = "argos-core" },
+    { name = "argos-redteam" },
     { name = "pydantic" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
+    { name = "argos-redteam", editable = "packages/argos-redteam" },
     { name = "pydantic", specifier = ">=2.9.2" },
 ]
 

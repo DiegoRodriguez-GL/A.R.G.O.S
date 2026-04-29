@@ -23,6 +23,7 @@ classifiers = [
 ]
 dependencies = [
   "argos-core",
+  "argos-redteam",
   "pydantic>=2.9.2",
 ]
 
