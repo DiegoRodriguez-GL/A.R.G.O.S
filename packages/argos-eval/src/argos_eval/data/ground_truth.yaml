@@ -1,0 +1,30 @@
+schema_version: 1
+catalogue_version: argos-eval/0.0.1
+note: Generated from the lab agents' declared vulnerability_surface. Edit by hand
+  to override individual cells; the runner uses this file as the source of truth,
+  not the surface declarations.
+generated_at: '2026-04-29T02:36:11+00:00'
+fire:
+  lab.langgraph.vulnerable:
+  - ASI03-PRIV-OVERSCOPE
+  - ASI03-PRIV-TOKEN-REPLAY
+  - ASI07-DECEPT-HIDDEN-ACTION
+  - ASI07-DECEPT-JUSTIFY
+  - ASI09-IDENT-HUMAN-IMP
+  - ASI09-IDENT-INTER-AGENT
+  lab.memory.vulnerable:
+  - ASI01-MEM-PROGRESSIVE
+  - ASI01-MEM-SINGLE-INJECT
+  - ASI05-HALLUC-CVE
+  - ASI06-INTENT-RAG-DOC
+  - ASI08-REPUD-ALTER-LOG
+  - ASI08-REPUD-NO-TRACE
+  - ASI10-HITL-BATCH-DILUTE
+  - ASI10-HITL-RAPID-FIRE
+  lab.react.vulnerable:
+  - ASI02-TOOL-ARG-SMUGGLE
+  - ASI02-TOOL-CHAIN-ABUSE
+  - ASI04-RES-BUDGET-EXHAUST
+  - ASI04-RES-RECURSIVE-LOOP
+  - ASI05-HALLUC-PACKAGE
+  - ASI06-INTENT-TOOLDESC

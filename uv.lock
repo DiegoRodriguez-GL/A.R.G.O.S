@@ -102,6 +102,7 @@ dependencies = [
     { name = "argos-core" },
     { name = "argos-redteam" },
     { name = "pydantic" },
+    { name = "pyyaml" },
 ]
 
 [package.metadata]
@@ -109,6 +110,7 @@ requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
     { name = "argos-redteam", editable = "packages/argos-redteam" },
     { name = "pydantic", specifier = ">=2.9.2" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
 [[package]]
