@@ -16,6 +16,7 @@ server.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import statistics
 import time
 from pathlib import Path
@@ -24,16 +25,20 @@ from typing import Annotated, Final
 import typer
 from argos_proxy import (
     ChainInterceptor,
+    FindingSink,
     ForensicsStore,
     OtelTracingInterceptor,
     PassThroughInterceptor,
     PIIDetector,
     ProxyInterceptor,
+    ProxyListener,
     ProxyServer,
     Request,
     Response,
     ScopeDetector,
     SqliteForensicsSink,
+    StdioUpstreamFactory,
+    TcpUpstreamFactory,
     ToolDriftDetector,
     make_transport_pair,
 )
@@ -173,21 +178,110 @@ async def _run_bench(
 
 
 # ---------------------------------------------------------------------------
-# argos proxy run -- placeholder until Phase 6 wires the real listener.
+# argos proxy run -- real TCP listener with multi-session lifecycle.
 # ---------------------------------------------------------------------------
+
+
+def _parse_listen(value: str) -> tuple[str, int]:
+    """Parse ``host:port`` (IPv4 or IPv6) into a tuple.
+
+    Accepts ``127.0.0.1:8765`` and ``[::1]:8765``. Returns
+    ``("127.0.0.1", 8765)`` / ``("::1", 8765)``."""
+    raw = value.strip()
+    if raw.startswith("["):
+        # IPv6 with brackets: [::1]:8765
+        end = raw.find("]")
+        if end < 0 or end + 1 >= len(raw) or raw[end + 1] != ":":
+            msg = f"invalid IPv6 listen address: {value!r}"
+            raise typer.BadParameter(msg)
+        host = raw[1:end]
+        port_str = raw[end + 2 :]
+    else:
+        if raw.count(":") != 1:
+            msg = f"listen must be host:port, got {value!r}"
+            raise typer.BadParameter(msg)
+        host, port_str = raw.rsplit(":", 1)
+    try:
+        port = int(port_str)
+    except ValueError as exc:
+        msg = f"port must be an integer, got {port_str!r}"
+        raise typer.BadParameter(msg) from exc
+    if port < 0 or port > 65535:
+        msg = f"port {port} out of range [0, 65535]"
+        raise typer.BadParameter(msg)
+    if not host:
+        msg = "host part is empty"
+        raise typer.BadParameter(msg)
+    return host, port
+
+
+def _parse_upstream_url(value: str) -> tuple[str, tuple[str, ...] | tuple[str, int]]:
+    """Parse the ``--upstream`` argument.
+
+    Two forms:
+
+    - ``stdio:<argv shell-style>`` -- spawn a subprocess. Example:
+      ``stdio:npx @modelcontextprotocol/server-filesystem /tmp``.
+    - ``tcp:<host>:<port>`` -- open a TCP connection. Example:
+      ``tcp:127.0.0.1:9000``.
+
+    Returns ``(kind, payload)`` where ``kind`` is ``"stdio"`` or
+    ``"tcp"`` and payload is the tuple to pass to the factory.
+    """
+    if value.startswith("stdio:"):
+        rest = value[len("stdio:") :].strip()
+        if not rest:
+            msg = "stdio upstream requires a command"
+            raise typer.BadParameter(msg)
+        # Split shell-style. We do NOT use shlex on Windows because the
+        # POSIX rules differ; for argument lists with spaces, the user
+        # should use --upstream-arg multiple times. The shell-style
+        # split here covers the common case: 'stdio:npx pkg arg'.
+        import shlex  # noqa: PLC0415
+
+        argv = tuple(
+            shlex.split(rest, posix=False) if rest.startswith("npx") else shlex.split(rest)
+        )
+        if not argv:
+            msg = "stdio upstream argv parsing produced an empty tuple"
+            raise typer.BadParameter(msg)
+        return "stdio", argv
+    if value.startswith("tcp:"):
+        rest = value[len("tcp:") :].strip()
+        host, port = _parse_listen(rest)  # same grammar
+        return "tcp", (host, port)
+    msg = (
+        f"upstream must start with 'stdio:' or 'tcp:', got {value!r}. "
+        f"Examples: 'stdio:npx @modelcontextprotocol/server-filesystem /tmp', "
+        f"'tcp:127.0.0.1:9000'."
+    )
+    raise typer.BadParameter(msg)
 
 
 @proxy_app.command("run")
 def run(
-    upstream_command: Annotated[
-        list[str] | None,
-        typer.Argument(
+    upstream: Annotated[
+        str,
+        typer.Option(
+            "--upstream",
+            "-u",
             help=(
-                "Upstream MCP server command. Example: 'npx @modelcontextprotocol/"
-                "server-filesystem /tmp'."
+                "Upstream URL. Forms: 'stdio:<argv>' or 'tcp:<host>:<port>'. "
+                "Example: 'stdio:python -m my_mcp_server'."
             ),
         ),
-    ] = None,
+    ],
+    listen: Annotated[
+        str,
+        typer.Option(
+            "--listen",
+            "-l",
+            help=(
+                "Listen address as host:port. Example: '127.0.0.1:8765'. "
+                "Use port 0 to bind an ephemeral port."
+            ),
+        ),
+    ] = "127.0.0.1:8765",
     forensics_db: Annotated[
         Path,
         typer.Option(
@@ -218,83 +312,187 @@ def run(
             help="Tool name (or glob) to permit. Repeatable. Empty = allow all.",
         ),
     ] = None,
+    max_sessions: Annotated[
+        int,
+        typer.Option(
+            "--max-sessions",
+            help="Concurrent session cap (default 64).",
+            min=1,
+            max=1024,
+        ),
+    ] = 64,
+    idle_timeout: Annotated[
+        float,
+        typer.Option(
+            "--idle-timeout",
+            help="Per-session inactivity timeout in seconds (default 600).",
+            min=1.0,
+        ),
+    ] = 600.0,
+    drain_timeout: Annotated[
+        float,
+        typer.Option(
+            "--drain-timeout",
+            help=(
+                "Seconds to wait on Ctrl+C for active sessions to finish before cancelling them."
+            ),
+            min=0.0,
+        ),
+    ] = 5.0,
+    duration: Annotated[
+        float,
+        typer.Option(
+            "--duration",
+            help=(
+                "Maximum lifetime of the listener in seconds (0 = run "
+                "until interrupted). Useful for CI smoke runs."
+            ),
+            min=0.0,
+        ),
+    ] = 0.0,
 ) -> None:
-    """Connect a downstream client to an upstream MCP server, audited.
+    """Run the audit proxy: bind a TCP listener, ferry every accepted client
+    through the configured detector chain, and persist forensics to SQLite.
 
-    Phase 5 wires only the stdio upstream. The TCP listener for the
-    downstream side ships in Phase 6. For now this command launches
-    the upstream subprocess, runs detectors against a synthetic
-    handshake, and exits -- enough for CI to verify the integration
-    works end-to-end.
+    Stop with Ctrl+C; active sessions are drained for up to
+    ``--drain-timeout`` seconds before any straggler is cancelled.
     """
-    if not upstream_command:
-        get_err_console().print("[argos.danger]error:[/] missing upstream command")
-        raise typer.Exit(code=2)
+    listen_host, listen_port = _parse_listen(listen)
+    upstream_kind, upstream_payload = _parse_upstream_url(upstream)
     asyncio.run(
-        _run_proxy(
-            upstream_argv=tuple(upstream_command),
+        _run_listener(
+            listen_host=listen_host,
+            listen_port=listen_port,
+            upstream_kind=upstream_kind,
+            upstream_payload=upstream_payload,
             forensics_db=forensics_db,
             enable_otel=enable_otel,
             enable_drift=enable_drift,
             enable_pii=enable_pii,
             allowed_tools=tuple(allowed_tools) if allowed_tools else (),
+            max_sessions=max_sessions,
+            idle_timeout=idle_timeout,
+            drain_timeout=drain_timeout,
+            duration=duration,
         ),
     )
 
 
-async def _run_proxy(
+def _build_shared_interceptor(
     *,
-    upstream_argv: tuple[str, ...],
+    sink: FindingSink,
+    enable_otel: bool,
+    enable_pii: bool,
+    allowed_tools: tuple[str, ...],
+) -> list[ProxyInterceptor]:
+    """Interceptor shared across sessions. Stateless detectors only.
+
+    Tool drift is per-session (it pins a baseline) so it must NOT live
+    here -- it is injected via the per-session interceptor factory."""
+    chain: list[ProxyInterceptor] = []
+    if enable_otel:
+        chain.append(OtelTracingInterceptor())
+    if enable_pii:
+        chain.append(PIIDetector(sink))
+    chain.append(
+        ScopeDetector(
+            sink,
+            allowed_tools=allowed_tools,
+            block_on_violation=bool(allowed_tools),
+        ),
+    )
+    return chain
+
+
+async def _run_listener(
+    *,
+    listen_host: str,
+    listen_port: int,
+    upstream_kind: str,
+    upstream_payload: tuple[str, ...] | tuple[str, int],
     forensics_db: Path,
     enable_otel: bool,
     enable_drift: bool,
     enable_pii: bool,
     allowed_tools: tuple[str, ...],
+    max_sessions: int,
+    idle_timeout: float,
+    drain_timeout: float,
+    duration: float,
 ) -> None:
-    """Lifecycle wiring used by ``argos proxy run`` and the integration test."""
     store = ForensicsStore(forensics_db)
     await store.open()
     sink = SqliteForensicsSink(store)
-    chain: list[ProxyInterceptor] = []
-    if enable_otel:
-        chain.append(OtelTracingInterceptor())
-    if enable_drift:
-        chain.append(ToolDriftDetector(sink, mode="warn"))
-    if enable_pii:
-        chain.append(PIIDetector(sink))
-    chain.append(
-        ScopeDetector(sink, allowed_tools=allowed_tools, block_on_violation=bool(allowed_tools)),
+
+    base_chain = _build_shared_interceptor(
+        sink=sink,
+        enable_otel=enable_otel,
+        enable_pii=enable_pii,
+        allowed_tools=allowed_tools,
     )
-    interceptor = ChainInterceptor(*chain)
 
-    # The handshake-only invocation: open a paired in-memory transport,
-    # spawn the upstream subprocess (Phase 6 will switch this to a real
-    # TCP listener), perform a tools/list round-trip, close.
-    from argos_proxy import StdioTransport  # noqa: PLC0415
+    def make_session_interceptor() -> ProxyInterceptor:
+        # Per-session: tool drift detector with a fresh baseline. The
+        # rest of the chain is stateless and shared.
+        chain = list(base_chain)
+        if enable_drift:
+            chain.insert(0, ToolDriftDetector(sink, mode="warn"))
+        return ChainInterceptor(*chain)
 
-    upstream = StdioTransport(upstream_argv)
-    client_side, proxy_in = make_transport_pair()
-    server = ProxyServer(client=proxy_in, upstream=upstream, interceptor=interceptor)
-    server_task = asyncio.create_task(server.run())
-    await asyncio.sleep(0)
+    upstream_factory: StdioUpstreamFactory | TcpUpstreamFactory
+    if upstream_kind == "stdio":
+        argv = tuple(str(x) for x in upstream_payload)
+        upstream_factory = StdioUpstreamFactory(argv)
+        upstream_repr = f"stdio:{' '.join(argv)}"
+    else:
+        host_str = str(upstream_payload[0])
+        port_int = int(upstream_payload[1])
+        upstream_factory = TcpUpstreamFactory(host_str, port_int)
+        upstream_repr = f"tcp:{host_str}:{port_int}"
+
+    listener = ProxyListener(
+        host=listen_host,
+        port=listen_port,
+        upstream_factory=upstream_factory,
+        interceptor_factory=make_session_interceptor,
+        max_sessions=max_sessions,
+        session_idle_timeout=idle_timeout,
+        drain_timeout=drain_timeout,
+    )
+    await listener.start()
+    bound = listener.bound_address()
+    bind_repr = f"{bound[0]}:{bound[1]}" if bound else f"{listen_host}:{listen_port}"
+    get_console().print(
+        f"[argos.ok]argos proxy:[/] listening on [argos.brand]{bind_repr}[/] "
+        f"-> upstream [argos.brand]{upstream_repr}[/]",
+    )
+    get_console().print(
+        f"  [argos.muted]forensics_db[/] {forensics_db}   "
+        f"[argos.muted]max_sessions[/] {max_sessions}   "
+        f"[argos.muted]idle_timeout[/] {idle_timeout:.0f}s",
+    )
+
+    serve_task = asyncio.create_task(listener.serve_forever())
     try:
-        await client_side.send(Request(method="initialize", id=1))
-        # Wait briefly for the upstream to handshake; abort on close.
-        try:
-            await asyncio.wait_for(client_side.receive(), timeout=5.0)
-        except TimeoutError:
-            get_err_console().print("[argos.warn]upstream did not respond within 5s[/]")
+        if duration > 0:
+            try:
+                await asyncio.wait_for(asyncio.shield(serve_task), timeout=duration)
+            except TimeoutError:
+                pass
+        else:
+            await serve_task
+    except (asyncio.CancelledError, KeyboardInterrupt):
+        pass
     finally:
-        await server.stop()
+        await listener.stop()
+        with contextlib.suppress(Exception):
+            await serve_task
         await store.close()
-        try:
-            await server_task
-        except Exception:  # noqa: BLE001
-            pass
+
     findings = await store.findings()
     get_console().print(
-        f"[argos.ok]proxy session complete:[/] {len(findings)} findings persisted to "
-        f"{forensics_db}",
+        f"[argos.ok]proxy stopped:[/] {listener.sessions.total_started} sessions served, "
+        f"{len(findings)} findings persisted to {forensics_db}",
     )
 
 

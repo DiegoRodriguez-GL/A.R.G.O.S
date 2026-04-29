@@ -24,16 +24,32 @@ from argos_proxy.transport._base import (
     Transport,
     TransportError,
 )
+from argos_proxy.transport.accepted import TcpAcceptedTransport
 from argos_proxy.transport.memory import InMemoryTransport, make_transport_pair
 from argos_proxy.transport.stdio import StdioTransport
 from argos_proxy.transport.tcp import TcpTransport
+from argos_proxy.transport.upstream_factory import (
+    CallableUpstreamFactory,
+    InMemoryUpstreamFactory,
+    SharedUpstreamFactory,
+    StdioUpstreamFactory,
+    TcpUpstreamFactory,
+    UpstreamFactory,
+)
 
 __all__ = [
+    "CallableUpstreamFactory",
     "ClosedTransportError",
     "InMemoryTransport",
+    "InMemoryUpstreamFactory",
+    "SharedUpstreamFactory",
     "StdioTransport",
+    "StdioUpstreamFactory",
+    "TcpAcceptedTransport",
     "TcpTransport",
+    "TcpUpstreamFactory",
     "Transport",
     "TransportError",
+    "UpstreamFactory",
     "make_transport_pair",
 ]
