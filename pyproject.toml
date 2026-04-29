@@ -138,9 +138,13 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["ANN", "S", "PLR", "INP", "PLC0415", "SLF"]
+"**/tests/**" = ["ANN", "S", "PLR", "INP", "PLC0415", "SLF", "ARG", "B017", "PT011", "PT012", "FBT003"]
 "scripts/**"  = ["T201", "INP"]
 "conftest.py" = ["INP"]
+# argos-proxy deliberately uses Union/typing for Pydantic compatibility
+# and pass-through except blocks for cooperative cancellation.
+"packages/argos-proxy/**" = ["UP007", "SIM105", "S110", "PYI034", "ARG002", "PERF401", "ANN401"]
+"packages/argos-cli/src/argos_cli/commands/proxy.py" = ["S110", "SIM105"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
