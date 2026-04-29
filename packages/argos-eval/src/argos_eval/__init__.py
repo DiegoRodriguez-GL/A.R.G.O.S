@@ -13,6 +13,17 @@ from argos_eval.intervals import (
     bootstrap_ci,
     wilson_interval,
 )
+from argos_eval.lab import (
+    ALL_AGENT_CLASSES,
+    LabAgent,
+    LangGraphHardened,
+    LangGraphVulnerable,
+    MemoryHardened,
+    MemoryVulnerable,
+    ReActHardened,
+    ReActVulnerable,
+    all_agents,
+)
 from argos_eval.metrics import (
     ConfusionMatrix,
     accuracy,
@@ -27,14 +38,23 @@ from argos_eval.metrics import (
 from argos_eval.report import EvalCase, EvalReport, Outcome
 
 __all__ = [
+    "ALL_AGENT_CLASSES",
     "DEFAULT_BOOTSTRAP_SAMPLES",
     "DEFAULT_CONFIDENCE",
     "ConfusionMatrix",
     "EvalCase",
     "EvalReport",
+    "LabAgent",
+    "LangGraphHardened",
+    "LangGraphVulnerable",
+    "MemoryHardened",
+    "MemoryVulnerable",
     "Outcome",
+    "ReActHardened",
+    "ReActVulnerable",
     "accuracy",
     "aggregate_by",
+    "all_agents",
     "bootstrap_ci",
     "f1_score",
     "macro_average",
