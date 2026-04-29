@@ -7,6 +7,11 @@ phases (lab agents, suite runner, CLI) build on.
 
 from __future__ import annotations
 
+from argos_eval.ground_truth import (
+    GroundTruth,
+    default_ground_truth,
+    default_ground_truth_path,
+)
 from argos_eval.intervals import (
     DEFAULT_BOOTSTRAP_SAMPLES,
     DEFAULT_CONFIDENCE,
@@ -36,14 +41,25 @@ from argos_eval.metrics import (
     specificity,
 )
 from argos_eval.report import EvalCase, EvalReport, Outcome
+from argos_eval.runner import (
+    DEFAULT_CONCURRENCY,
+    DEFAULT_TIMEOUT_SECONDS,
+    MAX_CONCURRENCY,
+    run_suite,
+    run_suite_async,
+)
 
 __all__ = [
     "ALL_AGENT_CLASSES",
     "DEFAULT_BOOTSTRAP_SAMPLES",
+    "DEFAULT_CONCURRENCY",
     "DEFAULT_CONFIDENCE",
+    "DEFAULT_TIMEOUT_SECONDS",
+    "MAX_CONCURRENCY",
     "ConfusionMatrix",
     "EvalCase",
     "EvalReport",
+    "GroundTruth",
     "LabAgent",
     "LangGraphHardened",
     "LangGraphVulnerable",
@@ -56,11 +72,15 @@ __all__ = [
     "aggregate_by",
     "all_agents",
     "bootstrap_ci",
+    "default_ground_truth",
+    "default_ground_truth_path",
     "f1_score",
     "macro_average",
     "matthews_correlation",
     "precision",
     "recall",
+    "run_suite",
+    "run_suite_async",
     "specificity",
     "wilson_interval",
 ]
