@@ -278,6 +278,46 @@ class EvalReport(BaseModel):
         lines.append("")
         return "\n".join(lines)
 
+    # ------------------------------------------------------------------
+    # Diff: structured comparison against a baseline run.
+    # ------------------------------------------------------------------
+    def diff(self, baseline: EvalReport) -> EvalReportDiff:
+        """Return the structural delta from ``baseline`` to ``self``.
+
+        ``self`` is treated as the *new* run (HEAD), ``baseline`` as
+        the *old* run (e.g. the canonical pinned report on main). The
+        same key is identified across both runs by the
+        ``(agent_id, probe_id)`` pair.
+
+        Iteration order of the output is deterministic: pairs are
+        sorted lexicographically. This matters for the regression
+        suite, which compares serialised diffs textually.
+        """
+        old_index = {(c.agent_id, c.probe_id): c for c in baseline.cases}
+        new_index = {(c.agent_id, c.probe_id): c for c in self.cases}
+
+        added = tuple(sorted(set(new_index) - set(old_index)))
+        removed = tuple(sorted(set(old_index) - set(new_index)))
+
+        changes: list[ClassificationChange] = []
+        for key in sorted(set(old_index) & set(new_index)):
+            old_class = _classify(old_index[key])
+            new_class = _classify(new_index[key])
+            if old_class != new_class:
+                changes.append(
+                    ClassificationChange(
+                        agent_id=key[0],
+                        probe_id=key[1],
+                        old=old_class,  # type: ignore[arg-type]
+                        new=new_class,  # type: ignore[arg-type]
+                    ),
+                )
+        return EvalReportDiff(
+            cases_added=added,
+            cases_removed=removed,
+            classifications_changed=tuple(changes),
+        )
+
     def to_csv_cases(self) -> str:
         """One row per :class:`EvalCase`, ready for pandas / R.
 
@@ -338,3 +378,82 @@ def _classify(case: EvalCase) -> str:
     if case.is_false_negative:
         return "FN"
     return "UNKNOWN"  # unreachable given Outcome enum is total
+
+
+class ClassificationChange(BaseModel):
+    """A single (agent, probe) cell whose classification changed between
+    two runs.
+
+    Used by :class:`EvalReportDiff` to surface the delta of a regression
+    (or improvement). ``old`` and ``new`` are the canonical strings from
+    :func:`_classify`: TP / FP / TN / FN / ERROR.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    agent_id: str = Field(..., min_length=1, max_length=128)
+    probe_id: str = Field(..., min_length=1, max_length=128)
+    old: Literal["TP", "FP", "TN", "FN", "ERROR"]
+    new: Literal["TP", "FP", "TN", "FN", "ERROR"]
+
+    @model_validator(mode="after")
+    def _must_actually_differ(self) -> ClassificationChange:
+        if self.old == self.new:
+            msg = f"ClassificationChange requires old != new, got {self.old!r}"
+            raise ValueError(msg)
+        return self
+
+    @property
+    def is_regression(self) -> bool:
+        """A change from a correct classification (TP/TN) to anything
+        else, or from any classification into ERROR.
+
+        The eval suite uses this to flag in CI whether a diff between
+        baseline and HEAD made things worse."""
+        return self.new == "ERROR" or (self.old in ("TP", "TN") and self.new != self.old)
+
+
+class EvalReportDiff(BaseModel):
+    """Structured difference between two :class:`EvalReport` instances.
+
+    Three buckets:
+
+    - ``cases_added``: (agent_id, probe_id) pairs present in ``new`` but
+      not in ``old``. New probes shipped, or a previously errored cell
+      now produces output.
+    - ``cases_removed``: (agent_id, probe_id) pairs present in ``old``
+      but not in ``new``. Catalogue shrinkage, or scope filter applied.
+    - ``classifications_changed``: pairs present in both runs whose
+      TP/FP/TN/FN/ERROR string differs. The interesting bucket; this
+      is what regression CI watches.
+
+    The two buckets that are not the "interesting" bucket are also
+    emitted, because a CI signal that ignores them would silently
+    accept a benchmark that drops cases (which would game the metrics).
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    cases_added: tuple[tuple[str, str], ...] = Field(default_factory=tuple)
+    cases_removed: tuple[tuple[str, str], ...] = Field(default_factory=tuple)
+    classifications_changed: tuple[ClassificationChange, ...] = Field(default_factory=tuple)
+
+    @property
+    def is_empty(self) -> bool:
+        """``True`` iff the two runs are equivalent under the diff lens."""
+        return not (self.cases_added or self.cases_removed or self.classifications_changed)
+
+    @property
+    def regressions(self) -> tuple[ClassificationChange, ...]:
+        """Subset of ``classifications_changed`` that represent worse
+        outcomes (correct→incorrect or anything→ERROR)."""
+        return tuple(c for c in self.classifications_changed if c.is_regression)
+
+    @property
+    def improvements(self) -> tuple[ClassificationChange, ...]:
+        """Changes that fix a previously-incorrect classification."""
+        return tuple(
+            c
+            for c in self.classifications_changed
+            if c.old in ("FP", "FN", "ERROR") and c.new in ("TP", "TN")
+        )
