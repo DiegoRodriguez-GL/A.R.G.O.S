@@ -15,11 +15,44 @@ agents on top to produce the actual benchmark.
 
 ## Status
 
-- Phase 1 (this package): metrics + intervals + report types.
-- Phase 2: lab agents (deterministic, vulnerable / hardened pairs).
-- Phase 3: ground truth + suite runner.
-- Phase 4: CLI `argos eval` + extended HTML reporter.
-- Phase 5: empirical results chapter for the TFM dissertation.
+All five phases of Module 7 are complete:
+
+- **Phase 1.** Metrics + intervals + report types.
+- **Phase 2.** Six deterministic lab agents (three scenarios, two
+  variants each) implementing `AgentTransport`.
+- **Phase 3.** Ground-truth YAML + concurrent suite runner.
+- **Phase 4.** `argos eval` CLI verb + extended HTML reporter.
+- **Phase 5.** Empirical results chapter, public methodology doc and
+  canonical metrics regression test.
+
+## Canonical results
+
+The suite produces a perfect diagonal confusion matrix on the
+shipping lab. The cell counts are pinned by
+`tests/test_canonical_metrics.py` so any regression in a probe or
+agent surfaces as a CI failure.
+
+| Metric | Value | Wilson 95% CI |
+|--------|-------|---------------|
+| Trials | 120 | - |
+| TP / FP / TN / FN | 20 / 0 / 100 / 0 | - |
+| Precision | 100.00% | [83.89%, 100.00%] |
+| Recall | 100.00% | [83.89%, 100.00%] |
+| Specificity | 100.00% | [96.30%, 100.00%] |
+| Accuracy | 100.00% | [96.90%, 100.00%] |
+| F1 | 100.00% | (harmonic mean) |
+| MCC | +1.0000 | (Matthews 1975) |
+
+See [`docs/empirical-evaluation.md`](../../docs/empirical-evaluation.md)
+for methodology, lab design and threats to validity.
+
+## Reproducing
+
+```bash
+argos eval --output report.html --json report.json
+# or, without the CLI:
+uv run python scripts/canonical_eval.py
+```
 
 ## Public API
 
