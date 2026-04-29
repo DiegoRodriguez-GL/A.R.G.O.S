@@ -211,6 +211,11 @@ markers = [
 filterwarnings = [
   "error",
   "ignore::DeprecationWarning:importlib.*",
+  # Windows ProactorSocketTransport emits an unraisable warning from
+  # StreamWriter.__del__ when sockets close very fast in tests. The
+  # production code closes them deterministically; the warning is a
+  # known asyncio quirk on Win + Python 3.11+ with no impact.
+  "ignore::pytest.PytestUnraisableExceptionWarning",
 ]
 
 # --- bandit (security, in case it is invoked outside ruff) ---------------

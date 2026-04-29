@@ -11,8 +11,10 @@ Two layers:
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 
+import pytest
 from argos_cli.app import app
 from typer.testing import CliRunner
 
@@ -90,3 +92,72 @@ def test_proxy_run_without_upstream_fails_fast() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["proxy", "run"])
     assert result.exit_code == 2
+
+
+def test_proxy_run_invalid_listen_address_rejected() -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        ["proxy", "run", "--listen", "not-a-host-port", "--upstream", "stdio:python --version"],
+    )
+    assert result.exit_code != 0
+
+
+def test_proxy_run_invalid_upstream_scheme_rejected() -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        ["proxy", "run", "--listen", "127.0.0.1:0", "--upstream", "ftp://nope"],
+    )
+    assert result.exit_code != 0
+
+
+def test_proxy_run_e2e_with_fake_mcp_subprocess(tmp_path: Path) -> None:
+    """End-to-end: spawn ``argos proxy run`` as a real subprocess
+    bound on ``127.0.0.1:0`` (ephemeral port, output captured), let
+    it run for 1.5 seconds against the fake MCP server, then verify
+    the listener stopped cleanly and the SQLite forensics db exists."""
+    py = _python_with_argos_installed()
+    fixture = (
+        Path(__file__).resolve().parents[2]
+        / "argos-proxy"
+        / "tests"
+        / "fixtures"
+        / "fake_mcp_server.py"
+    )
+    if not fixture.is_file():
+        pytest.skip(f"fixture not found: {fixture}")
+
+    db = tmp_path / "forensics.db"
+    # Run the CLI; --duration 1 limits the listener lifetime so the
+    # test cannot hang.
+    result = subprocess.run(
+        [
+            py,
+            "-m",
+            "argos_cli",
+            "proxy",
+            "run",
+            "--listen",
+            "127.0.0.1:0",
+            "--upstream",
+            f"stdio:{py} {fixture}",
+            "--forensics-db",
+            str(db),
+            "--no-otel",
+            "--no-drift",
+            "--no-pii",
+            "--duration",
+            "1.0",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30.0,
+    )
+    # Listener exits 0 on duration timeout (graceful stop).
+    assert result.returncode == 0, f"stdout={result.stdout!r} stderr={result.stderr!r}"
+    assert "argos proxy:" in result.stdout
+    assert "proxy stopped:" in result.stdout
+    # Forensics db file was created.
+    assert db.is_file()
