@@ -163,6 +163,21 @@ class ChainInterceptor(ProxyInterceptor):
                 current = replacement
         return current if current is not notification else None
 
+    async def on_batch(
+        self,
+        batch: Batch,
+        ctx: InterceptContext,
+    ) -> Batch | None:
+        # Without this override the chain would inherit the no-op base
+        # implementation, silently bypassing any link that implements
+        # batch-wide policy (e.g. "no batch may exceed N requests").
+        current = batch
+        for inner in self._chain:
+            replacement = await inner.on_batch(current, ctx)
+            if replacement is not None:
+                current = replacement
+        return current if current is not batch else None
+
 
 _CORRELATION_PREFIX: Final[str] = "argos-corr-"
 

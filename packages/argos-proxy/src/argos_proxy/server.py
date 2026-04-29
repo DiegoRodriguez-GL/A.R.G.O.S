@@ -244,10 +244,37 @@ class ProxyServer:
             outgoing = replacement if replacement is not None else msg
             await self._client.send(outgoing)
             return
-        # An MCP server can sometimes send Requests upstream -> client
-        # (sampling, elicitation). Forward them transparently.
+        # An MCP server can send Requests upstream -> client (sampling,
+        # elicitation per MCP spec). These DO need to flow through the
+        # interceptor: an attacker-controlled upstream might use them to
+        # exfiltrate (e.g. ``sampling/createMessage`` with the agent's
+        # context as the prompt). We reuse ``on_request_in`` because
+        # the inspection logic is identical; the ``ctx.extra`` flag
+        # tells detectors the unusual direction.
         if isinstance(msg, Request):
-            await self._client.send(msg)
+            # Use the helper that supports ``**extra`` so the dataclass
+            # is built once with the reverse-request flag (it's frozen,
+            # so post-hoc mutation would be hostile).
+            from argos_proxy.interceptor import new_context  # noqa: PLC0415
+
+            ctx = new_context(client_request_id=msg.id, reverse_request=True)
+            reverse_replacement: Request | None
+            try:
+                reverse_replacement = await self._interceptor.on_request_in(msg, ctx)
+            except JsonRpcError as err:
+                # The detector vetoes a reverse request. We answer the
+                # upstream with the structured error (the upstream
+                # awaits a response just like a regular caller).
+                resp = Response(
+                    error=ErrorObject(**err.to_object()),
+                    id=msg.id,
+                )
+                await self._upstream.send(resp)
+                return
+            except Exception:  # noqa: BLE001
+                _log.exception("on_request_in (reverse) raised; falling back to pass-through")
+                reverse_replacement = None
+            await self._client.send(reverse_replacement if reverse_replacement is not None else msg)
 
     # ------------------------------------------------------------------
     # Helpers.

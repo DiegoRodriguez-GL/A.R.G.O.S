@@ -91,10 +91,14 @@ def bench(
     """
     interceptor: ProxyInterceptor
     if with_detectors:
+        # ScopeDetector with ``block_on_violation=False`` so the bench
+        # exercises the detection cost without short-circuiting the
+        # synthetic ``bench/echo`` method (which would never be in any
+        # realistic allowlist).
         interceptor = ChainInterceptor(
             ToolDriftDetector(mode="warn"),
             PIIDetector(),
-            ScopeDetector(),
+            ScopeDetector(block_on_violation=False),
         )
     else:
         interceptor = PassThroughInterceptor()

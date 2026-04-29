@@ -46,6 +46,11 @@ _IBAN_RE: Final[re.Pattern[str]] = re.compile(
 # Spanish DNI: 8 digits and a control letter. The letter is checked
 # against the modulo-23 table.
 _DNI_RE: Final[re.Pattern[str]] = re.compile(r"\b([0-9]{8})([A-Za-z])\b")
+# Spanish NIE: prefix letter (X/Y/Z) + 7 digits + control letter. The
+# prefix is substituted by a digit (X=0, Y=1, Z=2) and the resulting
+# 8-digit value is run through the same modulo-23 check as DNI.
+_NIE_RE: Final[re.Pattern[str]] = re.compile(r"\b([XYZxyz])([0-9]{7})([A-Za-z])\b")
+_NIE_PREFIX_VALUE: Final[dict[str, str]] = {"X": "0", "Y": "1", "Z": "2"}
 _DNI_LETTERS: Final[str] = "TRWAGMYFPDXBNJZSQVHLCKE"
 
 # Payment card: 13-19 digits possibly grouped by hyphens or spaces.
@@ -170,21 +175,42 @@ class PIIDetector(ProxyDetector):
             )
 
     def _scan_text(self, text: str) -> Iterable[_Match]:
+        # Dispatch per kind so the function stays under ruff's branch
+        # cap as more PII patterns are added in the future.
         if "email" in self._kinds:
-            for m in _EMAIL_RE.finditer(text):
-                yield _Match(kind="email", snippet=_redact(m.group(0)))
+            yield from self._scan_email(text)
         if "iban" in self._kinds:
-            for m in _IBAN_RE.finditer(text):
-                if _iban_is_valid(m.group(0)):
-                    yield _Match(kind="iban", snippet=_redact(m.group(0)))
+            yield from self._scan_iban(text)
         if "dni" in self._kinds:
-            for m in _DNI_RE.finditer(text):
-                if _dni_is_valid(m.group(1), m.group(2)):
-                    yield _Match(kind="dni", snippet=_redact(m.group(0)))
+            yield from self._scan_dni(text)
         if "card" in self._kinds:
-            for raw in _iter_card_candidates(text):
-                if _luhn_is_valid(raw):
-                    yield _Match(kind="card", snippet=_redact(raw))
+            yield from self._scan_card(text)
+
+    @staticmethod
+    def _scan_email(text: str) -> Iterable[_Match]:
+        for m in _EMAIL_RE.finditer(text):
+            yield _Match(kind="email", snippet=_redact(m.group(0)))
+
+    @staticmethod
+    def _scan_iban(text: str) -> Iterable[_Match]:
+        for m in _IBAN_RE.finditer(text):
+            if _iban_is_valid(m.group(0)):
+                yield _Match(kind="iban", snippet=_redact(m.group(0)))
+
+    @staticmethod
+    def _scan_dni(text: str) -> Iterable[_Match]:
+        for m in _DNI_RE.finditer(text):
+            if _dni_is_valid(m.group(1), m.group(2)):
+                yield _Match(kind="dni", snippet=_redact(m.group(0)))
+        for m in _NIE_RE.finditer(text):
+            if _nie_is_valid(m.group(1), m.group(2), m.group(3)):
+                yield _Match(kind="dni", snippet=_redact(m.group(0)))
+
+    @staticmethod
+    def _scan_card(text: str) -> Iterable[_Match]:
+        for raw in _iter_card_candidates(text):
+            if _luhn_is_valid(raw):
+                yield _Match(kind="card", snippet=_redact(raw))
 
 
 # ---------------------------------------------------------------------------
@@ -225,6 +251,18 @@ def _dni_is_valid(digits: str, letter: str) -> bool:
     if not digits.isdigit() or len(digits) != 8:
         return False
     return _DNI_LETTERS[int(digits) % 23] == letter.upper()
+
+
+def _nie_is_valid(prefix: str, digits: str, letter: str) -> bool:
+    """Spanish NIE: substitute the prefix (X/Y/Z) for its digit
+    (0/1/2), then run the DNI modulo-23 check on the resulting 8-digit
+    string."""
+    prefix_upper = prefix.upper()
+    if prefix_upper not in _NIE_PREFIX_VALUE:
+        return False
+    if not digits.isdigit() or len(digits) != 7:
+        return False
+    return _dni_is_valid(_NIE_PREFIX_VALUE[prefix_upper] + digits, letter)
 
 
 def _iter_card_candidates(text: str) -> Iterable[str]:
