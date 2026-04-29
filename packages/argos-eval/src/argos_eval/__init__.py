@@ -40,7 +40,13 @@ from argos_eval.metrics import (
     recall,
     specificity,
 )
-from argos_eval.report import EvalCase, EvalReport, Outcome
+from argos_eval.report import (
+    ClassificationChange,
+    EvalCase,
+    EvalReport,
+    EvalReportDiff,
+    Outcome,
+)
 from argos_eval.runner import (
     DEFAULT_CONCURRENCY,
     DEFAULT_TIMEOUT_SECONDS,
@@ -56,9 +62,11 @@ __all__ = [
     "DEFAULT_CONFIDENCE",
     "DEFAULT_TIMEOUT_SECONDS",
     "MAX_CONCURRENCY",
+    "ClassificationChange",
     "ConfusionMatrix",
     "EvalCase",
     "EvalReport",
+    "EvalReportDiff",
     "GroundTruth",
     "LabAgent",
     "LangGraphHardened",
