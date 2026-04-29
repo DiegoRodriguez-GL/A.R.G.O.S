@@ -13,7 +13,7 @@ from argos_cli.commands import compliance as compliance_cmds
 from argos_cli.commands import rules as rules_cmds
 from argos_cli.commands.doctor import doctor
 from argos_cli.commands.eval import eval_
-from argos_cli.commands.proxy import proxy
+from argos_cli.commands.proxy import proxy_app
 from argos_cli.commands.redteam import redteam
 from argos_cli.commands.report import report
 from argos_cli.commands.scan import scan
@@ -38,13 +38,14 @@ app.command("status", help="One-screen summary of the ARGOS install.")(status)
 app.command("doctor", help="Auto-detect and scan every known MCP config.")(doctor)
 app.command("scan", help="Statically scan an MCP configuration.")(scan)
 app.command("redteam", help="Run red-teaming probes (Module 4).")(redteam)
-app.command("proxy", help="Run the MCP audit proxy (Module 5).")(proxy)
+# proxy is grouped (run / bench), exposed via add_typer below.
 app.command("report", help="Render findings into HTML or JSONL (Module 6).")(report)
 app.command("eval", help="Run the empirical evaluation suite (Module 7).")(eval_)
 
 # Grouped commands.
 app.add_typer(rules_cmds.app, name="rules")
 app.add_typer(compliance_cmds.app, name="compliance")
+app.add_typer(proxy_app, name="proxy")
 
 
 def _banner() -> Panel:

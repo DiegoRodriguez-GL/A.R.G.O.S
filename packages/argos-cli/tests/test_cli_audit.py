@@ -137,12 +137,13 @@ def test_bare_invocation_shows_help() -> None:
     assert r.exit_code in (0, 2)
 
 
-def test_proxy_placeholder_exits_two_and_mentions_module() -> None:
-    # proxy is still a placeholder (M5 pending). redteam, report implemented.
+def test_proxy_subcommand_help_lists_real_commands() -> None:
+    # M5 implemented: proxy is a Typer group exposing run + bench.
     r = runner.invoke(app, ["proxy"])
     assert r.exit_code == 2
     combined = r.stdout + (r.stderr or "")
-    assert "Module 5" in combined
+    assert "bench" in combined
+    assert "run" in combined
 
 
 def test_report_command_without_input_exits_two_with_hint() -> None:
