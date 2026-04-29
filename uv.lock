@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 members = [
     "argos-cli",
     "argos-core",
+    "argos-eval",
     "argos-monorepo",
     "argos-proxy",
     "argos-redteam",
@@ -94,12 +95,28 @@ requires-dist = [
 ]
 
 [[package]]
+name = "argos-eval"
+version = "0.0.1"
+source = { editable = "packages/argos-eval" }
+dependencies = [
+    { name = "argos-core" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "argos-core", editable = "packages/argos-core" },
+    { name = "pydantic", specifier = ">=2.9.2" },
+]
+
+[[package]]
 name = "argos-monorepo"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "argos-cli" },
     { name = "argos-core" },
+    { name = "argos-eval" },
     { name = "argos-proxy" },
     { name = "argos-redteam" },
     { name = "argos-reporter" },
@@ -125,6 +142,7 @@ dev = [
 requires-dist = [
     { name = "argos-cli", editable = "packages/argos-cli" },
     { name = "argos-core", editable = "packages/argos-core" },
+    { name = "argos-eval", editable = "packages/argos-eval" },
     { name = "argos-proxy", editable = "packages/argos-proxy" },
     { name = "argos-redteam", editable = "packages/argos-redteam" },
     { name = "argos-reporter", editable = "packages/argos-reporter" },

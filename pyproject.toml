@@ -31,6 +31,7 @@ dependencies = [
   "argos-proxy",
   "argos-reporter",
   "argos-rules",
+  "argos-eval",
 ]
 
 [project.optional-dependencies]
@@ -64,6 +65,7 @@ argos-redteam  = { workspace = true }
 argos-proxy    = { workspace = true }
 argos-reporter = { workspace = true }
 argos-rules    = { workspace = true }
+argos-eval     = { workspace = true }
 
 # --- ruff ----------------------------------------------------------------
 [tool.ruff]

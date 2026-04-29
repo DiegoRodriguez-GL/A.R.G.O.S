@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "argos-eval"
+version = "0.0.1"
+description = "ARGOS empirical evaluation framework. Confusion matrices, precision/recall/F1/MCC and Wilson + bootstrap confidence intervals."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "ARGOS Contributors" }]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+dependencies = [
+  "argos-core",
+  "pydantic>=2.9.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/argos_eval"]
