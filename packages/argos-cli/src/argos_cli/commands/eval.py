@@ -111,6 +111,27 @@ def eval_(
             writable=True,
         ),
     ] = None,
+    markdown_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--markdown",
+            "-m",
+            help="Optional path for a Markdown summary (paste into LaTeX/Word).",
+            file_okay=True,
+            dir_okay=False,
+            writable=True,
+        ),
+    ] = None,
+    csv_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--csv",
+            help="Optional path for a per-case CSV export (pandas / R analysis).",
+            file_okay=True,
+            dir_okay=False,
+            writable=True,
+        ),
+    ] = None,
     concurrency: Annotated[
         int,
         typer.Option(
@@ -203,6 +224,10 @@ def eval_(
 
     if json_path is not None:
         json_path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+    if markdown_path is not None:
+        markdown_path.write_text(report.to_markdown(), encoding="utf-8")
+    if csv_path is not None:
+        csv_path.write_text(report.to_csv_cases(), encoding="utf-8")
 
     if not quiet:
         _render_summary(report)

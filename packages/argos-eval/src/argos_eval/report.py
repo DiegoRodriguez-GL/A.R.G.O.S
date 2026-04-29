@@ -26,7 +26,15 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from argos_eval.metrics import ConfusionMatrix
+from argos_eval.metrics import (
+    ConfusionMatrix,
+    accuracy,
+    f1_score,
+    matthews_correlation,
+    precision,
+    recall,
+    specificity,
+)
 
 
 class Outcome(Enum):
@@ -186,3 +194,147 @@ class EvalReport(BaseModel):
     @property
     def duration_seconds(self) -> float:
         return (self.finished_at - self.started_at).total_seconds()
+
+    # ------------------------------------------------------------------
+    # Export formats: Markdown + CSV.
+    # The HTML reporter is the rich format; these two are for academic
+    # paste-and-go (markdown directly into LaTeX / Word) and for
+    # downstream statistical analysis (CSV per-case in pandas / R).
+    # ------------------------------------------------------------------
+    def to_markdown(self) -> str:
+        """Render a self-contained Markdown summary.
+
+        Includes: run metadata, global confusion matrix as a 2x2 table,
+        global metrics with cell counts, per-ASI breakdown and
+        per-agent breakdown. Each table is GitHub-Flavoured-Markdown
+        compatible so it pastes cleanly into any modern editor.
+        """
+        cm = self.confusion_matrix()
+
+        lines: list[str] = [
+            "# ARGOS empirical evaluation report",
+            "",
+            "## Run metadata",
+            "",
+            "| Field | Value |",
+            "|-------|-------|",
+            f"| Started | {self.started_at.isoformat(timespec='seconds')} |",
+            f"| Finished | {self.finished_at.isoformat(timespec='seconds')} |",
+            f"| Duration (s) | {self.duration_seconds:.2f} |",
+            f"| Trials | {len(self.cases)} |",
+            f"| Errored | {len(self.errored)} |",
+            f"| Catalogue | `{self.catalogue_version}` |",
+        ]
+        if self.seed is not None:
+            lines.append(f"| Seed | `{self.seed}` |")
+        lines.extend(
+            [
+                "",
+                "## Global confusion matrix",
+                "",
+                "| Real \\ Predicted | FIRE | BLOCK |",
+                "|------------------|------|-------|",
+                f"| **FIRE** | TP = {cm.tp} | FN = {cm.fn} |",
+                f"| **BLOCK** | FP = {cm.fp} | TN = {cm.tn} |",
+                "",
+                "## Global metrics",
+                "",
+                "| Metric | Value |",
+                "|--------|-------|",
+                f"| Precision | {precision(cm) * 100:.2f}% |",
+                f"| Recall | {recall(cm) * 100:.2f}% |",
+                f"| Specificity | {specificity(cm) * 100:.2f}% |",
+                f"| Accuracy | {accuracy(cm) * 100:.2f}% |",
+                f"| F1 score | {f1_score(cm) * 100:.2f}% |",
+                f"| MCC | {matthews_correlation(cm):+.4f} |",
+                "",
+                "## Per-ASI breakdown",
+                "",
+                "| Category | Total | TP | FP | TN | FN | Precision | Recall | F1 |",
+                "|----------|------:|---:|---:|---:|---:|----------:|-------:|---:|",
+            ],
+        )
+        for code, sub in sorted(self.by_category().items()):
+            lines.append(
+                f"| {code} | {sub.total} | {sub.tp} | {sub.fp} | {sub.tn} | "
+                f"{sub.fn} | {precision(sub) * 100:.2f}% | "
+                f"{recall(sub) * 100:.2f}% | {f1_score(sub) * 100:.2f}% |",
+            )
+        lines.extend(
+            [
+                "",
+                "## Per-agent breakdown",
+                "",
+                "| Agent | Total | TP | FP | TN | FN | Precision | Recall | F1 |",
+                "|-------|------:|---:|---:|---:|---:|----------:|-------:|---:|",
+            ],
+        )
+        for agent_id, sub in sorted(self.by_agent().items()):
+            lines.append(
+                f"| `{agent_id}` | {sub.total} | {sub.tp} | {sub.fp} | "
+                f"{sub.tn} | {sub.fn} | {precision(sub) * 100:.2f}% | "
+                f"{recall(sub) * 100:.2f}% | {f1_score(sub) * 100:.2f}% |",
+            )
+        lines.append("")
+        return "\n".join(lines)
+
+    def to_csv_cases(self) -> str:
+        """One row per :class:`EvalCase`, ready for pandas / R.
+
+        Columns: agent_id, probe_id, asi_category, expected,
+        predicted, error, duration_ms, classification.
+
+        ``classification`` is one of TP / FP / TN / FN / ERROR. The
+        column lets downstream consumers filter without re-deriving
+        the cell from expected/predicted/error themselves.
+        """
+        # Use the standard library csv module with universal-newlines
+        # output so the bytes are stable across platforms (Windows
+        # would otherwise insert \r\n).
+        import csv  # noqa: PLC0415
+        import io  # noqa: PLC0415
+
+        buffer = io.StringIO(newline="")
+        writer = csv.writer(buffer, lineterminator="\n")
+        writer.writerow(
+            [
+                "agent_id",
+                "probe_id",
+                "asi_category",
+                "expected",
+                "predicted",
+                "error",
+                "duration_ms",
+                "classification",
+            ],
+        )
+        for case in self.cases:
+            classification = _classify(case)
+            writer.writerow(
+                [
+                    case.agent_id,
+                    case.probe_id,
+                    case.asi_category or "",
+                    case.expected.value,
+                    case.predicted.value,
+                    case.error or "",
+                    f"{case.duration_ms:.4f}",
+                    classification,
+                ],
+            )
+        return buffer.getvalue()
+
+
+def _classify(case: EvalCase) -> str:
+    """Return the canonical TP/FP/TN/FN/ERROR string for a case."""
+    if case.error is not None:
+        return "ERROR"
+    if case.is_true_positive:
+        return "TP"
+    if case.is_true_negative:
+        return "TN"
+    if case.is_false_positive:
+        return "FP"
+    if case.is_false_negative:
+        return "FN"
+    return "UNKNOWN"  # unreachable given Outcome enum is total
