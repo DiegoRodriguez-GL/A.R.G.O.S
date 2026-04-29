@@ -63,24 +63,50 @@ Requirements: Python 3.11 or newer. Linux, macOS, Windows.
 
 ---
 
-## Quick start
+## Try it in 30 seconds
 
 ```bash
-# 1. Statically scan an MCP configuration.
-argos scan config/agent.mcp.json --severity high
-
-# 2. Run red-team probes against a running agent.
-argos redteam --target http://localhost:8080 --probes "asi01-*,asi02-*"
-
-# 3. Capture runtime traffic through the audit proxy.
-argos proxy --listen 127.0.0.1:8765 --upstream http://agent:9000
-
-# 4. Render a professional report.
-argos report --input findings.jsonl --output report.html
+argos demo
 ```
 
-Most flags above land in later modules; Module 0 ships the CLI surface and
-exits with status `2` for commands that are not yet implemented.
+That single command runs the full guided tour: a static scan over the bundled
+vulnerable fixture (20 findings, 5 critical), the canonical lab benchmark
+(120 trials, perfect confusion matrix), the proxy latency benchmark (sub-100µs
+p95) and the multi-framework compliance summary. End-to-end in ~10 seconds,
+zero arguments, zero setup.
+
+Stuck? Print the cheat sheet:
+
+```bash
+argos quickstart       # copy-paste recipes for every workflow
+argos status           # what is loaded right now
+argos --help           # the full command tree
+```
+
+## Common workflows
+
+```bash
+# 1. Audit a static MCP configuration.
+argos scan config/agent.mcp.json --severity high
+
+# 2. Auto-detect every MCP config on this machine and scan it.
+argos doctor
+
+# 3. Red-team a running agent endpoint.
+argos redteam -t http://localhost:11434/api/chat
+
+# 4. Run the empirical lab benchmark (reproducible).
+argos eval --json out.json --markdown out.md
+
+# 5. Audit live MCP traffic through the proxy.
+argos proxy run -u stdio:'python -m my_mcp_server'
+
+# 6. Render a polished report (HTML + compliance heatmap).
+argos report findings.jsonl -o report.html
+```
+
+Every subcommand carries an **Examples** epilog in its `--help`, so
+`argos <verb> --help` always finishes with a working command you can copy.
 
 ---
 

@@ -145,6 +145,7 @@ ignore = [
 # and pass-through except blocks for cooperative cancellation.
 "packages/argos-proxy/**" = ["UP007", "SIM105", "S110", "PYI034", "ARG002", "PERF401", "ANN401"]
 "packages/argos-cli/src/argos_cli/commands/proxy.py" = ["S110", "SIM105"]
+"packages/argos-cli/src/argos_cli/commands/demo.py" = ["S110", "SIM105", "PLR0915"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
