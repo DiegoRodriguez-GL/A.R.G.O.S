@@ -1,0 +1,50 @@
+{#
+  Per-agent breakdown table. The interesting comparison is the
+  vulnerable / hardened pair within each scenario: the vulnerable
+  variant should accumulate TP (its surface fires); the hardened
+  variant should accumulate TN (its mitigations block).
+#}
+<section class="section" id="eval-per-agent">
+  <h2 class="section-title">
+    <span class="section-number">5.</span>
+    Desglose por agente
+  </h2>
+
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700); margin-bottom: 5mm;">
+    Cada fila reporta la matriz restringida a un agente. La estructura
+    canonical de un par bien comportado: el agente vulnerable acumula
+    TP (su superficie se dispara) y el agente endurecido acumula TN (sus
+    mitigaciones bloquean).
+  </p>
+
+  <table class="findings-table">
+    <thead>
+      <tr>
+        <th>Agente</th>
+        <th>Total</th>
+        <th>TP</th>
+        <th>FP</th>
+        <th>TN</th>
+        <th>FN</th>
+        <th>Precision</th>
+        <th>Recall</th>
+        <th>F1</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in per_agent_rows %}
+      <tr>
+        <td><code>{{ row.label }}</code></td>
+        <td>{{ row.total }}</td>
+        <td>{{ row.tp }}</td>
+        <td>{{ row.fp }}</td>
+        <td>{{ row.tn }}</td>
+        <td>{{ row.fn }}</td>
+        <td>{{ row.precision }}%</td>
+        <td>{{ row.recall }}%</td>
+        <td><span class="eval-band-{{ row.f1_band }} eval-band-pill">{{ row.f1 }}%</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>

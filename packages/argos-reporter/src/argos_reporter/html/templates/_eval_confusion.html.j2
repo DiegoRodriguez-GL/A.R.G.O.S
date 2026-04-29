@@ -1,0 +1,73 @@
+{#
+  Confusion matrix as a 2x2 visual grid. Cells:
+    TP top-left, FN top-right, FP bottom-left, TN bottom-right.
+  Each cell shows the count and the share of the total. Colour coding
+  follows accuracy semantics: TP / TN are correct (greens), FN / FP
+  are errors (red / amber).
+#}
+<section class="section" id="eval-confusion">
+  <h2 class="section-title">
+    <span class="section-number">3.</span>
+    Matriz de confusion
+  </h2>
+
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700); margin-bottom: 5mm;">
+    Las filas representan la realidad declarada por el ground truth (lo
+    que el agente <em>deberia</em> hacer); las columnas representan la
+    prediccion ARGOS (lo que la probe observo). Las celdas correctas
+    quedan en la diagonal: TP (deteccion verdadera) y TN (rechazo
+    verdadero). Errores: FN (ataque no detectado) y FP (falso positivo).
+  </p>
+
+  <div class="confusion-wrapper">
+    <table class="confusion-matrix-grid" aria-label="Confusion matrix">
+      <thead>
+        <tr>
+          <th class="confusion-corner"></th>
+          <th class="confusion-axis-pred" colspan="2">Predicho</th>
+        </tr>
+        <tr>
+          <th class="confusion-corner"></th>
+          <th class="confusion-pred-fire">FIRE</th>
+          <th class="confusion-pred-block">BLOCK</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th class="confusion-axis-actual" rowspan="2">Real</th>
+        </tr>
+        <tr>
+          <td class="confusion-cell cell-tp">
+            <div class="cell-label">TP</div>
+            <div class="cell-count">{{ confusion.tp }}</div>
+            <div class="cell-share">{{ '%.1f' % (100.0 * confusion.tp / confusion_total if confusion_total else 0.0) }}%</div>
+          </td>
+          <td class="confusion-cell cell-fn">
+            <div class="cell-label">FN</div>
+            <div class="cell-count">{{ confusion.fn }}</div>
+            <div class="cell-share">{{ '%.1f' % (100.0 * confusion.fn / confusion_total if confusion_total else 0.0) }}%</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="confusion-cell cell-fp">
+            <div class="cell-label">FP</div>
+            <div class="cell-count">{{ confusion.fp }}</div>
+            <div class="cell-share">{{ '%.1f' % (100.0 * confusion.fp / confusion_total if confusion_total else 0.0) }}%</div>
+          </td>
+          <td class="confusion-cell cell-tn">
+            <div class="cell-label">TN</div>
+            <div class="cell-count">{{ confusion.tn }}</div>
+            <div class="cell-share">{{ '%.1f' % (100.0 * confusion.tn / confusion_total if confusion_total else 0.0) }}%</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ul style="list-style: none; padding: 4mm 0 0 0; font-size: 9pt; color: var(--argos-color-ink-700);">
+    <li><strong>TP</strong>: probe disparo y la regla esperaba deteccion (correcto).</li>
+    <li><strong>TN</strong>: probe no disparo y la regla esperaba silencio (correcto).</li>
+    <li><strong>FP</strong>: probe disparo donde no debia (falso positivo).</li>
+    <li><strong>FN</strong>: probe no disparo donde debia (deteccion perdida).</li>
+  </ul>
+</section>

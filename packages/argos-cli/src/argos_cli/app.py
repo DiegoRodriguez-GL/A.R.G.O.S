@@ -12,6 +12,7 @@ from argos_cli import __version__
 from argos_cli.commands import compliance as compliance_cmds
 from argos_cli.commands import rules as rules_cmds
 from argos_cli.commands.doctor import doctor
+from argos_cli.commands.eval import eval_
 from argos_cli.commands.proxy import proxy
 from argos_cli.commands.redteam import redteam
 from argos_cli.commands.report import report
@@ -39,6 +40,7 @@ app.command("scan", help="Statically scan an MCP configuration.")(scan)
 app.command("redteam", help="Run red-teaming probes (Module 4).")(redteam)
 app.command("proxy", help="Run the MCP audit proxy (Module 5).")(proxy)
 app.command("report", help="Render findings into HTML or JSONL (Module 6).")(report)
+app.command("eval", help="Run the empirical evaluation suite (Module 7).")(eval_)
 
 # Grouped commands.
 app.add_typer(rules_cmds.app, name="rules")

@@ -628,6 +628,186 @@
   font-weight: 700;
 }
 
+/* ===== EVAL: metric cards grid =========================================
+ * Five-up grid for the six top-level metrics. Each card carries a
+ * "score band" tint so a reviewer can see the overall health at a
+ * glance; the band classes are:
+ *
+ *   .eval-band-high  >= 0.90  emerald
+ *   .eval-band-med   >= 0.70  amber
+ *   .eval-band-low   >= 0.50  orange
+ *   .eval-band-fail  <  0.50  red
+ *
+ * Cards reuse the typography scale of the audit report's stat cards;
+ * the difference is the metric value is the number-of-merit, not a
+ * count.
+ */
+.eval-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4mm;
+  margin-bottom: 6mm;
+}
+
+.eval-metric-card {
+  padding: 4mm;
+  border-radius: 6px;
+  border: 1px solid var(--argos-color-ink-200);
+  background: var(--argos-color-paper);
+  page-break-inside: avoid;
+}
+
+.eval-metric-label {
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--argos-color-ink-500);
+  margin-bottom: 2mm;
+}
+
+.eval-metric-value {
+  font-size: 22pt;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--argos-color-night);
+  margin-bottom: 2mm;
+}
+
+.eval-metric-ci {
+  font-size: 7.5pt;
+  color: var(--argos-color-ink-500);
+  font-family: var(--argos-font-mono);
+}
+
+/* Score band tints applied to metric cards. */
+.eval-band-high { background: #ecfdf5; border-color: #bbf7d0; }
+.eval-band-high .eval-metric-value { color: #166534; }
+.eval-band-high .eval-metric-label { color: #166534; }
+
+.eval-band-med { background: #fffbeb; border-color: #fde68a; }
+.eval-band-med .eval-metric-value { color: #92400e; }
+.eval-band-med .eval-metric-label { color: #92400e; }
+
+.eval-band-low { background: #fff7ed; border-color: #fed7aa; }
+.eval-band-low .eval-metric-value { color: #9a3412; }
+.eval-band-low .eval-metric-label { color: #9a3412; }
+
+.eval-band-fail { background: #fef2f2; border-color: #fecaca; }
+.eval-band-fail .eval-metric-value { color: #991b1b; }
+.eval-band-fail .eval-metric-label { color: #991b1b; }
+
+/* Inline pill version for the breakdown tables. */
+.eval-band-pill {
+  display: inline-block;
+  padding: 0.5mm 2.5mm;
+  border-radius: 3px;
+  font-size: 7.5pt;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+}
+
+.eval-band-pill.eval-band-high { background: #ecfdf5; color: #166534; border: 0.5px solid #bbf7d0; }
+.eval-band-pill.eval-band-med  { background: #fffbeb; color: #92400e; border: 0.5px solid #fde68a; }
+.eval-band-pill.eval-band-low  { background: #fff7ed; color: #9a3412; border: 0.5px solid #fed7aa; }
+.eval-band-pill.eval-band-fail { background: #fef2f2; color: #991b1b; border: 0.5px solid #fecaca; }
+
+/* ===== EVAL: confusion matrix grid =====================================
+ * 2x2 grid using a real <table>. Diagonal cells are correct (greens);
+ * off-diagonal are errors (reds / ambers). Sized so the matrix fits
+ * comfortably within a single A4 column.
+ */
+.confusion-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 6mm 0;
+}
+
+.confusion-matrix-grid {
+  border-collapse: collapse;
+  font-family: var(--argos-font-sans);
+  table-layout: fixed;
+  width: 130mm;
+}
+
+.confusion-matrix-grid th,
+.confusion-matrix-grid td {
+  border: 1px solid var(--argos-color-ink-300);
+  padding: 0;
+}
+
+.confusion-matrix-grid .confusion-corner {
+  background: var(--argos-color-paper);
+  border: none;
+  width: 24mm;
+}
+
+.confusion-matrix-grid .confusion-axis-pred,
+.confusion-matrix-grid .confusion-axis-actual {
+  background: var(--argos-color-night);
+  color: var(--argos-color-paper);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 9pt;
+  padding: 2mm;
+}
+
+.confusion-matrix-grid .confusion-axis-actual {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  vertical-align: middle;
+  text-align: center;
+  width: 14mm;
+  padding: 4mm 2mm;
+}
+
+.confusion-matrix-grid .confusion-pred-fire,
+.confusion-matrix-grid .confusion-pred-block {
+  background: var(--argos-color-ink-100);
+  color: var(--argos-color-night);
+  font-weight: 700;
+  font-family: var(--argos-font-mono);
+  font-size: 8.5pt;
+  padding: 2mm;
+  text-align: center;
+}
+
+.confusion-cell {
+  height: 30mm;
+  text-align: center;
+  vertical-align: middle;
+  padding: 3mm !important;
+}
+
+.confusion-cell .cell-label {
+  font-size: 9pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confusion-cell .cell-count {
+  font-size: 24pt;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  margin: 1.5mm 0;
+}
+
+.confusion-cell .cell-share {
+  font-size: 8pt;
+  font-family: var(--argos-font-mono);
+  opacity: 0.85;
+}
+
+.confusion-cell.cell-tp { background: #ecfdf5; color: #166534; }
+.confusion-cell.cell-tn { background: #eff6ff; color: #1e3a8a; }
+.confusion-cell.cell-fp { background: #fff7ed; color: #9a3412; }
+.confusion-cell.cell-fn { background: #fef2f2; color: #991b1b; }
+
 /* ===== SCREEN-ONLY REFINEMENT =========================================== */
 @media screen {
   .argos-report {

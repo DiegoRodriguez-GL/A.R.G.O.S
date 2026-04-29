@@ -25,6 +25,7 @@ dependencies = [
   "argos-scanner",
   "argos-redteam",
   "argos-reporter",
+  "argos-eval",
   "typer>=0.12.5",
   "rich>=13.8.1",
   "pygments>=2.20.0",  # transitive via rich; floor pinned for CVE-2026-4539

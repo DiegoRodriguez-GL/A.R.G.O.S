@@ -1,0 +1,32 @@
+{#
+  Global metrics card grid. Each metric shows the point estimate plus
+  a Wilson 95% CI (Wilson 1927) for the proportions; F1 and MCC use
+  alternative cell text since they are not single proportions.
+
+  Score band classes (`high|med|low|fail`) tint the cards; thresholds
+  follow the conservative convention used in security benchmarks:
+  >= 0.90 = high, [0.70, 0.90) = med, [0.50, 0.70) = low, < 0.50 = fail.
+#}
+<section class="section" id="eval-metrics">
+  <h2 class="section-title">
+    <span class="section-number">2.</span>
+    Metricas globales con intervalos de confianza
+  </h2>
+
+  <p style="font-size: 9.5pt; color: var(--argos-color-ink-700); margin-bottom: 5mm;">
+    Los intervalos de confianza al {{ confidence_pct }}% se calculan con la
+    formula de Wilson (Wilson, 1927; Newcombe, 1998). F1 se reporta como
+    media armonica de precision y recall; MCC como coeficiente de
+    correlacion de Matthews (Matthews, 1975).
+  </p>
+
+  <div class="eval-metrics-grid">
+    {% for row in metric_rows %}
+    <div class="eval-metric-card eval-band-{{ row.band }}">
+      <div class="eval-metric-label">{{ row.label }}</div>
+      <div class="eval-metric-value">{{ row.point }}</div>
+      <div class="eval-metric-ci">CI {{ confidence_pct }}%: {{ row.ci }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>

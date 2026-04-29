@@ -52,6 +52,7 @@ version = "0.0.1"
 source = { editable = "packages/argos-cli" }
 dependencies = [
     { name = "argos-core" },
+    { name = "argos-eval" },
     { name = "argos-redteam" },
     { name = "argos-reporter" },
     { name = "argos-scanner" },
@@ -64,6 +65,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
+    { name = "argos-eval", editable = "packages/argos-eval" },
     { name = "argos-redteam", editable = "packages/argos-redteam" },
     { name = "argos-reporter", editable = "packages/argos-reporter" },
     { name = "argos-scanner", editable = "packages/argos-scanner" },
@@ -207,6 +209,7 @@ version = "0.0.1"
 source = { editable = "packages/argos-reporter" }
 dependencies = [
     { name = "argos-core" },
+    { name = "argos-eval" },
     { name = "jinja2" },
     { name = "markupsafe" },
 ]
@@ -214,6 +217,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
+    { name = "argos-eval", editable = "packages/argos-eval" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "markupsafe", specifier = ">=2.1.5" },
 ]

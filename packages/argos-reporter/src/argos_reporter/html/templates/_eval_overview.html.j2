@@ -1,0 +1,51 @@
+{#
+  Evaluation overview: trial counts, duration, errored cases plus the
+  TOC. Mirrors the structure of the audit overview so both documents
+  read symmetrically.
+#}
+<section class="section" id="eval-overview">
+  <h2 class="section-title"><span class="section-number">1.</span> Resumen del experimento</h2>
+
+  <table class="info-table">
+    <tbody>
+      <tr><th>Suite</th><td>{{ target_locator }}</td></tr>
+      <tr><th>Producer</th><td><code>{{ producer }}</code></td></tr>
+      <tr><th>Inicio</th><td>{{ started_at.isoformat(timespec='seconds') }}</td></tr>
+      <tr><th>Fin</th><td>{{ finished_at.isoformat(timespec='seconds') }}</td></tr>
+      <tr><th>Duracion</th><td>{{ '%.2f' % duration_seconds }} segundos</td></tr>
+      <tr><th>Trials totales</th><td><strong>{{ total_cases }}</strong></td></tr>
+      <tr><th>Trials errored</th><td>{{ errored_cases }}</td></tr>
+      {% if seed is not none %}
+      <tr><th>Seed</th><td><code>{{ seed }}</code></td></tr>
+      {% endif %}
+      <tr><th>Catalogue version</th><td><code>{{ methodology_version }}</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="subsection-title">Indice</h3>
+  <ul class="toc-list">
+    <li class="toc-item"><span class="toc-number">1.</span><span class="toc-text">Resumen del experimento</span></li>
+    <li class="toc-item"><span class="toc-number">2.</span><span class="toc-text">Metricas globales con intervalos de confianza</span></li>
+    <li class="toc-item"><span class="toc-number">3.</span><span class="toc-text">Matriz de confusion</span></li>
+    <li class="toc-item"><span class="toc-number">4.</span><span class="toc-text">Desglose por categoria OWASP ASI</span></li>
+    <li class="toc-item"><span class="toc-number">5.</span><span class="toc-text">Desglose por agente</span></li>
+    <li class="toc-item"><span class="toc-number">6.</span><span class="toc-text">Apendice metodologico</span></li>
+  </ul>
+
+  <div class="methodology-box">
+    <div class="methodology-box-title">Marco experimental</div>
+    <p>
+      El benchmark consta de seis agentes deterministicos de laboratorio
+      (tres escenarios &mdash; ReAct con tools MCP, LangGraph supervisor-worker,
+      memoria persistente con RAG &mdash; en variante vulnerable y endurecida)
+      contrastados contra el catalogo completo de probes ASI01-ASI10. La
+      matriz de ground truth declara que pares (agente, probe) deben
+      disparar; la matriz observada se compara con esa expectativa.
+    </p>
+    <p>
+      La determinismo total del banco de pruebas (sin LLMs reales, sin red)
+      hace que el resultado sea reproducible bit a bit; cualquier desviacion
+      de la matriz diagonal perfecta es defecto real, no ruido del banco.
+    </p>
+  </div>
+</section>
