@@ -112,6 +112,34 @@ def test_proxy_run_invalid_upstream_scheme_rejected() -> None:
     assert result.exit_code != 0
 
 
+def test_parse_upstream_url_http_form() -> None:
+    from argos_cli.commands.proxy import _parse_upstream_url
+
+    kind, payload = _parse_upstream_url("http://localhost:9000/mcp")
+    assert kind == "http"
+    assert payload == ("http://localhost:9000/mcp",)
+
+
+def test_parse_upstream_url_sse_form_no_post_url() -> None:
+    from argos_cli.commands.proxy import _parse_upstream_url
+
+    kind, payload = _parse_upstream_url("sse://localhost:9000/sse")
+    assert kind == "sse"
+    assert payload == ("http://localhost:9000/sse", None)
+
+
+def test_parse_upstream_url_sse_form_with_post_url() -> None:
+    from argos_cli.commands.proxy import _parse_upstream_url
+
+    kind, payload = _parse_upstream_url(
+        "sse://localhost:9000/sse#localhost:9000/messages",
+    )
+    assert kind == "sse"
+    sse_url, post_url = payload
+    assert sse_url == "http://localhost:9000/sse"
+    assert post_url == "http://localhost:9000/messages"
+
+
 def test_proxy_run_e2e_with_fake_mcp_subprocess(tmp_path: Path) -> None:
     """End-to-end: spawn ``argos proxy run`` as a real subprocess
     bound on ``127.0.0.1:0`` (ephemeral port, output captured), let

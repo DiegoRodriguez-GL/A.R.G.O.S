@@ -26,6 +26,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable, Sequence
 
 from argos_proxy.transport._base import Transport
+from argos_proxy.transport.http import HttpStreamableTransport, SseTransport
 from argos_proxy.transport.memory import InMemoryTransport, make_transport_pair
 from argos_proxy.transport.stdio import StdioTransport
 from argos_proxy.transport.tcp import TcpTransport
@@ -91,6 +92,50 @@ class TcpUpstreamFactory(UpstreamFactory):
         return transport
 
 
+class HttpStreamableUpstreamFactory(UpstreamFactory):
+    """Open a streamable-http (MCP spec 2025-03-26) connection per session.
+
+    The full URL (scheme + host + port + path) is captured at
+    construction; each session opens its own pair of TCP sockets to the
+    upstream so per-session interceptors stay isolated."""
+
+    __slots__ = ("_url",)
+
+    def __init__(self, url: str) -> None:
+        if not url.startswith(("http://", "https://")):
+            msg = f"streamable-http URL must start with http:// or https://, got {url!r}"
+            raise ValueError(msg)
+        self._url = url
+
+    async def __call__(self) -> Transport:
+        transport = HttpStreamableTransport(self._url)
+        await transport.connect()
+        return transport
+
+
+class SseUpstreamFactory(UpstreamFactory):
+    """Open a legacy SSE (GET stream + POST messages) connection per
+    session.
+
+    ``post_url`` is optional: if absent, the transport waits for the
+    upstream to emit the canonical ``endpoint`` event on the SSE
+    stream within five seconds and uses that URL for POSTs."""
+
+    __slots__ = ("_post_url", "_sse_url")
+
+    def __init__(self, sse_url: str, *, post_url: str | None = None) -> None:
+        if not sse_url.startswith(("http://", "https://")):
+            msg = f"SSE URL must start with http:// or https://, got {sse_url!r}"
+            raise ValueError(msg)
+        self._sse_url = sse_url
+        self._post_url = post_url
+
+    async def __call__(self) -> Transport:
+        transport = SseTransport(self._sse_url, post_url=self._post_url)
+        await transport.connect()
+        return transport
+
+
 class SharedUpstreamFactory(UpstreamFactory):
     """Return a fixed transport across every session.
 
@@ -146,8 +191,10 @@ class InMemoryUpstreamFactory(UpstreamFactory):
 
 __all__ = [
     "CallableUpstreamFactory",
+    "HttpStreamableUpstreamFactory",
     "InMemoryUpstreamFactory",
     "SharedUpstreamFactory",
+    "SseUpstreamFactory",
     "StdioUpstreamFactory",
     "TcpUpstreamFactory",
     "UpstreamFactory",

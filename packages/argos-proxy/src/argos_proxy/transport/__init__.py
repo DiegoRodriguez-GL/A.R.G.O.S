@@ -25,13 +25,17 @@ from argos_proxy.transport._base import (
     TransportError,
 )
 from argos_proxy.transport.accepted import TcpAcceptedTransport
+from argos_proxy.transport.http import HttpStreamableTransport, SseTransport
+from argos_proxy.transport.http_server import HttpStreamableAcceptedTransport
 from argos_proxy.transport.memory import InMemoryTransport, make_transport_pair
 from argos_proxy.transport.stdio import StdioTransport
 from argos_proxy.transport.tcp import TcpTransport
 from argos_proxy.transport.upstream_factory import (
     CallableUpstreamFactory,
+    HttpStreamableUpstreamFactory,
     InMemoryUpstreamFactory,
     SharedUpstreamFactory,
+    SseUpstreamFactory,
     StdioUpstreamFactory,
     TcpUpstreamFactory,
     UpstreamFactory,
@@ -40,9 +44,14 @@ from argos_proxy.transport.upstream_factory import (
 __all__ = [
     "CallableUpstreamFactory",
     "ClosedTransportError",
+    "HttpStreamableAcceptedTransport",
+    "HttpStreamableTransport",
+    "HttpStreamableUpstreamFactory",
     "InMemoryTransport",
     "InMemoryUpstreamFactory",
     "SharedUpstreamFactory",
+    "SseTransport",
+    "SseUpstreamFactory",
     "StdioTransport",
     "StdioUpstreamFactory",
     "TcpAcceptedTransport",

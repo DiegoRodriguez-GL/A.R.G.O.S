@@ -27,6 +27,7 @@ from argos_proxy import (
     ChainInterceptor,
     FindingSink,
     ForensicsStore,
+    HttpStreamableUpstreamFactory,
     OtelTracingInterceptor,
     PassThroughInterceptor,
     PIIDetector,
@@ -37,6 +38,7 @@ from argos_proxy import (
     Response,
     ScopeDetector,
     SqliteForensicsSink,
+    SseUpstreamFactory,
     StdioUpstreamFactory,
     TcpUpstreamFactory,
     ToolDriftDetector,
@@ -229,18 +231,26 @@ def _parse_listen(value: str) -> tuple[str, int]:
     return host, port
 
 
-def _parse_upstream_url(value: str) -> tuple[str, tuple[str, ...] | tuple[str, int]]:
+def _parse_upstream_url(
+    value: str,
+) -> tuple[str, tuple[str, ...] | tuple[str, int] | tuple[str, str | None]]:
     """Parse the ``--upstream`` argument.
 
-    Two forms:
+    Four forms:
 
     - ``stdio:<argv shell-style>`` -- spawn a subprocess. Example:
       ``stdio:npx @modelcontextprotocol/server-filesystem /tmp``.
     - ``tcp:<host>:<port>`` -- open a TCP connection. Example:
       ``tcp:127.0.0.1:9000``.
+    - ``http://<host>:<port>/<path>`` -- streamable-http MCP transport
+      (spec 2025-03-26). Example: ``http://localhost:9000/mcp``.
+    - ``sse://<host>:<port>/<sse-path>[#<post-path>]`` -- legacy SSE MCP
+      transport. The optional ``#post-path`` overrides the auto-discovered
+      ``endpoint`` event. Example: ``sse://localhost:9000/sse``.
 
-    Returns ``(kind, payload)`` where ``kind`` is ``"stdio"`` or
-    ``"tcp"`` and payload is the tuple to pass to the factory.
+    Returns ``(kind, payload)`` where ``kind`` is ``"stdio"``, ``"tcp"``,
+    ``"http"``, or ``"sse"`` and ``payload`` is what the corresponding
+    factory expects.
     """
     if value.startswith("stdio:"):
         rest = value[len("stdio:") :].strip()
@@ -264,10 +274,29 @@ def _parse_upstream_url(value: str) -> tuple[str, tuple[str, ...] | tuple[str, i
         rest = value[len("tcp:") :].strip()
         host, port = _parse_listen(rest)  # same grammar
         return "tcp", (host, port)
+    if value.startswith(("http://", "https://")):
+        # Streamable-http MCP transport: the URL itself is the payload.
+        return "http", (value,)
+    if value.startswith("sse://"):
+        # Legacy SSE transport. ``sse://host:port/sse[#post-path]``
+        # rewrites to ``http://host:port/sse`` for the GET URL plus an
+        # optional explicit POST URL after the fragment.
+        body = value[len("sse://") :]
+        post_url: str | None = None
+        if "#" in body:
+            body, fragment = body.split("#", 1)
+            post_url = (
+                f"http://{fragment}"
+                if not fragment.startswith(("http://", "https://"))
+                else fragment
+            )
+        sse_url = f"http://{body}"
+        return "sse", (sse_url, post_url)
     msg = (
-        f"upstream must start with 'stdio:' or 'tcp:', got {value!r}. "
-        f"Examples: 'stdio:npx @modelcontextprotocol/server-filesystem /tmp', "
-        f"'tcp:127.0.0.1:9000'."
+        f"upstream must start with 'stdio:', 'tcp:', 'http://' or 'sse://', "
+        f"got {value!r}. Examples: 'stdio:npx @modelcontextprotocol/server-filesystem /tmp', "
+        f"'tcp:127.0.0.1:9000', 'http://localhost:9000/mcp', "
+        f"'sse://localhost:9000/sse'."
     )
     raise typer.BadParameter(msg)
 
@@ -300,7 +329,9 @@ def run(
             "--upstream",
             "-u",
             help=(
-                "Upstream URL. Forms: 'stdio:<argv>' or 'tcp:<host>:<port>'. "
+                "Upstream URL. Supported forms: 'stdio:<argv>', "
+                "'tcp:<host>:<port>', 'http://<host>:<port>/<path>', "
+                "or 'sse://<host>:<port>/<sse-path>[#<post-path>]'. "
                 "Example: 'stdio:python -m my_mcp_server'."
             ),
         ),
@@ -438,12 +469,12 @@ def _build_shared_interceptor(
     return chain
 
 
-async def _run_listener(
+async def _run_listener(  # noqa: PLR0915 - dispatch on 4 upstream kinds
     *,
     listen_host: str,
     listen_port: int,
     upstream_kind: str,
-    upstream_payload: tuple[str, ...] | tuple[str, int],
+    upstream_payload: tuple[str, ...] | tuple[str, int] | tuple[str, str | None],
     forensics_db: Path,
     enable_otel: bool,
     enable_drift: bool,
@@ -473,16 +504,39 @@ async def _run_listener(
             chain.insert(0, ToolDriftDetector(sink, mode="warn"))
         return ChainInterceptor(*chain)
 
-    upstream_factory: StdioUpstreamFactory | TcpUpstreamFactory
+    upstream_factory: (
+        StdioUpstreamFactory
+        | TcpUpstreamFactory
+        | HttpStreamableUpstreamFactory
+        | SseUpstreamFactory
+    )
     if upstream_kind == "stdio":
         argv = tuple(str(x) for x in upstream_payload)
         upstream_factory = StdioUpstreamFactory(argv)
         upstream_repr = f"stdio:{' '.join(argv)}"
-    else:
+    elif upstream_kind == "tcp":
         host_str = str(upstream_payload[0])
-        port_int = int(upstream_payload[1])
+        # parser guarantees upstream_payload[1] is int for tcp kind.
+        port_int = int(upstream_payload[1])  # type: ignore[arg-type]
         upstream_factory = TcpUpstreamFactory(host_str, port_int)
         upstream_repr = f"tcp:{host_str}:{port_int}"
+    elif upstream_kind == "http":
+        url_str = str(upstream_payload[0])
+        upstream_factory = HttpStreamableUpstreamFactory(url_str)
+        upstream_repr = url_str
+    elif upstream_kind == "sse":
+        sse_url_str = str(upstream_payload[0])
+        post_url_raw = upstream_payload[1] if len(upstream_payload) > 1 else None
+        post_url_str = str(post_url_raw) if post_url_raw is not None else None
+        upstream_factory = SseUpstreamFactory(sse_url_str, post_url=post_url_str)
+        upstream_repr = (
+            f"sse://{sse_url_str}"
+            if post_url_str is None
+            else f"sse://{sse_url_str}#{post_url_str}"
+        )
+    else:  # pragma: no cover - guarded by parser
+        msg = f"unknown upstream kind: {upstream_kind!r}"
+        raise typer.BadParameter(msg)
 
     listener = ProxyListener(
         host=listen_host,

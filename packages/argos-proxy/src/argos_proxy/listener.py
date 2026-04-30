@@ -227,8 +227,8 @@ class ProxyListener:
         if port < 0 or port > 65535:
             msg = f"port {port} out of range [0, 65535]"
             raise ValueError(msg)
-        if framing not in {"ndjson", "stdio"}:
-            msg = f"framing must be 'ndjson' or 'stdio', got {framing!r}"
+        if framing not in {"ndjson", "stdio", "http"}:
+            msg = f"framing must be 'ndjson', 'stdio', or 'http', got {framing!r}"
             raise ValueError(msg)
         if session_idle_timeout <= 0 or session_idle_timeout > _HARD_MAX_IDLE_SECONDS:
             msg = (
@@ -384,12 +384,21 @@ class ProxyListener:
             return
 
         metrics = self._sessions.open(peer)
-        client_transport = TcpAcceptedTransport(
-            reader,
-            writer,
-            framing=self._framing,
-            peer=peer,
-        )
+        if self._framing == "http":
+            from argos_proxy.transport.http_server import (  # noqa: PLC0415
+                HttpStreamableAcceptedTransport,
+            )
+
+            client_transport: TcpAcceptedTransport | HttpStreamableAcceptedTransport = (
+                HttpStreamableAcceptedTransport(reader, writer, peer=peer)
+            )
+        else:
+            client_transport = TcpAcceptedTransport(
+                reader,
+                writer,
+                framing=self._framing,
+                peer=peer,
+            )
 
         # Build upstream + interceptor for this session.
         try:
