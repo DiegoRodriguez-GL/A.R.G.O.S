@@ -29,10 +29,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage      = "https://github.com/argos-ai-audit/argos"
-Documentation = "https://argos-ai-audit.github.io/argos"
-Issues        = "https://github.com/argos-ai-audit/argos/issues"
-Repository    = "https://github.com/argos-ai-audit/argos"
+Homepage      = "https://github.com/DiegoRodriguez-GL/A.R.G.O.S"
+Documentation = "https://diegorodriguez-gl.github.io/A.R.G.O.S"
+Issues        = "https://github.com/DiegoRodriguez-GL/A.R.G.O.S/issues"
+Repository    = "https://github.com/DiegoRodriguez-GL/A.R.G.O.S"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/argos_core"]

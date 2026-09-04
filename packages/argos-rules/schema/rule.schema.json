@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://argos-ai-audit.github.io/schemas/rule-0.1.0.json",
+  "$id": "https://diegorodriguez-gl.github.io/A.R.G.O.S/schemas/rule-0.1.0.json",
   "title": "ARGOS rule",
   "description": "Authoritative schema for ARGOS YAML rules (v0.1.0). Rules produced by this schema are accepted by argos_rules.parse_rule at runtime; mismatched documents are rejected.",
   "type": "object",

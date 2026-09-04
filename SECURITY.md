@@ -17,7 +17,7 @@ fixes. The table below will grow as minor versions ship.
 
 Please use GitHub's **private vulnerability reporting** for this repository:
 
-- <https://github.com/argos-ai-audit/argos/security/advisories/new>
+- <https://github.com/DiegoRodriguez-GL/A.R.G.O.S/security/advisories/new>
 
 If that channel is not available, send an encrypted email to the maintainers
 (see the public PGP key pinned to the repository README once an official

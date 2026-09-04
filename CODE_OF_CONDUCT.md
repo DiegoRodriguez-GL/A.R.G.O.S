@@ -53,7 +53,7 @@ officially representing the community in public spaces.
 
 Instances of abusive, harassing, or otherwise unacceptable behaviour may be
 reported to the project maintainers through GitHub's
-[private vulnerability reporting flow](https://github.com/argos-ai-audit/argos/security/advisories/new)
+[private vulnerability reporting flow](https://github.com/DiegoRodriguez-GL/A.R.G.O.S/security/advisories/new)
 or any other contact method listed in `SECURITY.md`. All complaints will be
 reviewed and investigated promptly and fairly.
 

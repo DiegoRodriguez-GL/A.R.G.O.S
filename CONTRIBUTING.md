@@ -19,7 +19,7 @@ and what we expect from a merge-ready change.
 ## Getting set up
 
 ```bash
-git clone https://github.com/argos-ai-audit/argos
+git clone https://github.com/DiegoRodriguez-GL/A.R.G.O.S
 cd argos
 make bootstrap
 ```
@@ -68,7 +68,7 @@ Refs: #42
 
 ## Reporting security issues
 
-Use GitHub's [private advisory flow](https://github.com/argos-ai-audit/argos/security/advisories/new).
+Use GitHub's [private advisory flow](https://github.com/DiegoRodriguez-GL/A.R.G.O.S/security/advisories/new).
 Do not open public issues for vulnerabilities. See
 [`SECURITY.md`](SECURITY.md) for the full policy.
 

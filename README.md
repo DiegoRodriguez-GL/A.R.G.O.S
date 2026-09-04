@@ -113,7 +113,7 @@ Every subcommand carries an **Examples** epilog in its `--help`, so
 ## Development
 
 ```bash
-git clone https://github.com/argos-ai-audit/argos
+git clone https://github.com/DiegoRodriguez-GL/A.R.G.O.S
 cd argos
 make bootstrap       # installs deps + pre-commit hooks
 make ci              # lint + typecheck + test
