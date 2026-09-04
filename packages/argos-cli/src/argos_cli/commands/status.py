@@ -12,6 +12,7 @@ from rich.text import Text
 
 from argos_cli import __version__
 from argos_cli.console import get_console
+from argos_cli.plugins import discover
 
 
 def status() -> None:
@@ -52,6 +53,28 @@ def status() -> None:
     for key, val in rows:
         table.add_row(key, val)
     console.print(table)
+
+    # THREAT_MODEL.md T3: every third-party plugin that can influence a
+    # verdict is listed with the distribution that provides it, so an
+    # auditor can see at a glance which packages were trusted.
+    plugins = list(discover())
+    console.print()
+    if not plugins:
+        console.print(
+            "[argos.muted]Plugins: none discovered via entry points "
+            "(only first-party rules, probes and detectors are active).[/]",
+        )
+    else:
+        console.print(f"[bold]Plugins[/] ({len(plugins)} discovered via entry points):")
+        ptable = Table(show_header=True, header_style="bold", box=box.MINIMAL, expand=False)
+        ptable.add_column("Group", style="argos.muted", no_wrap=True)
+        ptable.add_column("Name", no_wrap=True)
+        ptable.add_column("Distribution", no_wrap=True)
+        for plugin in plugins:
+            dist = plugin.entry_point.dist
+            provider = f"{dist.name}=={dist.version}" if dist is not None else "unknown"
+            ptable.add_row(plugin.group, plugin.name, provider)
+        console.print(ptable)
 
     console.print()
     console.print(

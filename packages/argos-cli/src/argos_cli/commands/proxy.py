@@ -17,8 +17,12 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import ipaddress
+import json
+import os
 import statistics
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Final
 
@@ -45,6 +49,7 @@ from argos_proxy import (
     make_transport_pair,
 )
 
+from argos_cli import __version__
 from argos_cli.console import get_console, get_err_console
 
 #: Default p95 latency target for the bench command. Mirrors RNF-02.
@@ -231,6 +236,51 @@ def _parse_listen(value: str) -> tuple[str, int]:
     return host, port
 
 
+def _is_loopback(host: str) -> bool:
+    """True when ``host`` can only be reached from this machine.
+
+    THREAT_MODEL.md T7: the audit proxy sits between an agent and its
+    MCP servers, so a listener reachable from the network lets any
+    peer impersonate the agent (or read the captured traffic). The
+    default bind is therefore loopback-only and a wider bind must be
+    requested explicitly with ``--allow-external``.
+
+    ``localhost`` is accepted by name; every other hostname is treated
+    as external because name resolution happens at bind time and could
+    map to a routable address.
+    """
+    if host.strip().lower() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host.strip("[]")).is_loopback
+    except ValueError:
+        return False
+
+
+def _identity_line(
+    *,
+    bind_repr: str,
+    upstream_repr: str,
+    forensics_db: Path,
+) -> str:
+    """Machine-readable identity record printed once at startup.
+
+    THREAT_MODEL.md T7: an operator auditing the socket owner needs the
+    pid and the exact listening address on one greppable line. The
+    record is JSON so it can be parsed by a supervisor or a SIEM.
+    """
+    record = {
+        "event": "argos.proxy.identity",
+        "pid": os.getpid(),
+        "listen": bind_repr,
+        "upstream": upstream_repr,
+        "forensics_db": str(forensics_db),
+        "version": __version__,
+        "started_at": datetime.now(UTC).isoformat(timespec="seconds"),
+    }
+    return json.dumps(record, sort_keys=True, separators=(",", ":"))
+
+
 def _parse_upstream_url(
     value: str,
 ) -> tuple[str, tuple[str, ...] | tuple[str, int] | tuple[str, str | None]]:
@@ -315,6 +365,9 @@ _RUN_EPILOG = """\
 
   [cyan]argos proxy run -u stdio:'cmd' --no-pii --allow-tool 'safe.*'[/]
     disable PII detector, restrict tools to a glob
+
+  [cyan]argos proxy run -u tcp:10.0.0.5:9000 -l 0.0.0.0:8765 --allow-external[/]
+    bind beyond loopback (prints a warning banner; THREAT_MODEL T7)
 
 [bold]Stop[/] with Ctrl+C; active sessions drain for [cyan]--drain-timeout[/]
 seconds before any straggler is cancelled.
@@ -415,6 +468,17 @@ def run(
             min=0.0,
         ),
     ] = 0.0,
+    allow_external: Annotated[
+        bool,
+        typer.Option(
+            "--allow-external",
+            help=(
+                "Permit binding to a non-loopback address. Off by default: "
+                "a network-reachable audit proxy can be impersonated or "
+                "read by any peer (THREAT_MODEL T7)."
+            ),
+        ),
+    ] = False,
 ) -> None:
     """Run the audit proxy: bind a TCP listener, ferry every accepted client
     through the configured detector chain, and persist forensics to SQLite.
@@ -423,6 +487,20 @@ def run(
     ``--drain-timeout`` seconds before any straggler is cancelled.
     """
     listen_host, listen_port = _parse_listen(listen)
+    if not allow_external and not _is_loopback(listen_host):
+        msg = (
+            f"refusing to bind {listen_host!r}: a non-loopback listen address "
+            "exposes the audit proxy to the network. Pass --allow-external "
+            "if that is intended (THREAT_MODEL.md T7)."
+        )
+        raise typer.BadParameter(msg, param_hint="--listen")
+    if allow_external and not _is_loopback(listen_host):
+        get_err_console().print(
+            "[argos.warn]warning:[/] listening on a non-loopback address "
+            f"([argos.brand]{listen_host}[/]). Any peer that can reach this port "
+            "can impersonate the audited agent or read captured traffic. "
+            "Restrict with a firewall or an allowlist.",
+        )
     upstream_kind, upstream_payload = _parse_upstream_url(upstream)
     asyncio.run(
         _run_listener(
@@ -558,6 +636,15 @@ async def _run_listener(  # noqa: PLR0915 - dispatch on 4 upstream kinds
         f"  [argos.muted]forensics_db[/] {forensics_db}   "
         f"[argos.muted]max_sessions[/] {max_sessions}   "
         f"[argos.muted]idle_timeout[/] {idle_timeout:.0f}s",
+    )
+    # THREAT_MODEL.md T7: one greppable JSON line with pid + socket so
+    # the operator can audit who owns the listening port.
+    get_console().out(
+        _identity_line(
+            bind_repr=bind_repr,
+            upstream_repr=upstream_repr,
+            forensics_db=forensics_db,
+        ),
     )
 
     serve_task = asyncio.create_task(listener.serve_forever())
