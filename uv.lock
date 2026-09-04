@@ -56,6 +56,7 @@ dependencies = [
     { name = "argos-redteam" },
     { name = "argos-reporter" },
     { name = "argos-scanner" },
+    { name = "pydantic" },
     { name = "pygments" },
     { name = "pyyaml" },
     { name = "rich" },
@@ -69,6 +70,7 @@ requires-dist = [
     { name = "argos-redteam", editable = "packages/argos-redteam" },
     { name = "argos-reporter", editable = "packages/argos-reporter" },
     { name = "argos-scanner", editable = "packages/argos-scanner" },
+    { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pygments", specifier = ">=2.20.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "rich", specifier = ">=13.8.1" },
@@ -176,6 +178,7 @@ dependencies = [
     { name = "argos-core" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-sdk" },
+    { name = "pydantic" },
 ]
 
 [package.metadata]
@@ -184,6 +187,7 @@ requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
     { name = "opentelemetry-api", specifier = ">=1.27.0" },
     { name = "opentelemetry-sdk", specifier = ">=1.27.0" },
+    { name = "pydantic", specifier = ">=2.9.2" },
 ]
 
 [[package]]
@@ -194,6 +198,7 @@ dependencies = [
     { name = "anyio" },
     { name = "argos-core" },
     { name = "httpx" },
+    { name = "pydantic" },
 ]
 
 [package.metadata]
@@ -201,6 +206,7 @@ requires-dist = [
     { name = "anyio", specifier = ">=4.6.0" },
     { name = "argos-core", editable = "packages/argos-core" },
     { name = "httpx", specifier = ">=0.27.2" },
+    { name = "pydantic", specifier = ">=2.9.2" },
 ]
 
 [[package]]
@@ -228,12 +234,14 @@ version = "0.0.1"
 source = { editable = "packages/argos-rules" }
 dependencies = [
     { name = "argos-core" },
+    { name = "pydantic" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "argos-core", editable = "packages/argos-core" },
+    { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 

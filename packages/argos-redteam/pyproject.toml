@@ -23,6 +23,7 @@ dependencies = [
   "argos-core",
   "httpx>=0.27.2",
   "anyio>=4.6.0",
+  "pydantic>=2.9.2",
 ]
 
 [tool.hatch.build.targets.wheel]
