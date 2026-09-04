@@ -8,12 +8,20 @@ Five framework YAMLs ship under ``data/``:
 - NIST AI Risk Management Framework (``nist_ai_rmf``)
 - ISO/IEC 42001 (``iso_42001``)
 
-Plus ``mapping.yaml`` with N:M cross-framework relationships.
+Plus ``mapping.yaml`` with N:M cross-framework relationships and
+``MANIFEST.sha256``, the integrity manifest every load is checked against
+(THREAT_MODEL.md T4).
 """
 
 from __future__ import annotations
 
 from argos_core.compliance.loader import load_controls
+from argos_core.compliance.manifest import (
+    MANIFEST_FILENAME,
+    ComplianceIntegrityWarning,
+    VerificationResult,
+    verify_manifest,
+)
 from argos_core.compliance.models import (
     Confidence,
     Control,
@@ -28,6 +36,8 @@ from argos_core.compliance.models import (
 )
 
 __all__ = [
+    "MANIFEST_FILENAME",
+    "ComplianceIntegrityWarning",
     "Confidence",
     "Control",
     "ControlIndex",
@@ -38,5 +48,7 @@ __all__ = [
     "MappingEntry",
     "MappingMeta",
     "Relationship",
+    "VerificationResult",
     "load_controls",
+    "verify_manifest",
 ]

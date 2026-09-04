@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import warnings
 from functools import lru_cache
 from importlib import resources
 from typing import Any
 
 import yaml
 
+from argos_core.compliance.manifest import ComplianceIntegrityWarning, verify_manifest
 from argos_core.compliance.models import (
     Control,
     ControlIndex,
@@ -36,8 +38,18 @@ def load_controls() -> ControlIndex:
 
     Tolerates missing files: if no framework is shipped yet (pre-M1) the index
     is returned empty. Malformed files raise ``ValueError`` loudly.
+
+    Before parsing, the bundled data is checked against its integrity
+    manifest (THREAT_MODEL.md T4). Drift does not abort the load -- an
+    auditor may be working on the data deliberately -- but it raises a
+    :class:`ComplianceIntegrityWarning` so the condition is visible in
+    logs and fails any test suite that treats warnings as errors.
+    ``argos compliance verify`` exposes the same check as an exit code.
     """
     data_root = resources.files("argos_core.compliance") / "data"
+    verification = verify_manifest(data_root)
+    if not verification.ok:
+        warnings.warn(verification.summary(), ComplianceIntegrityWarning, stacklevel=2)
 
     framework_metas: list[FrameworkMeta] = []
     controls: list[Control] = []

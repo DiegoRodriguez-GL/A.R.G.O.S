@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 
 import typer
-from argos_core.compliance import load_controls
+from argos_core.compliance import MANIFEST_FILENAME, load_controls, verify_manifest
 from rich import box
 from rich.panel import Panel
 from rich.table import Table
@@ -130,3 +130,39 @@ def map_control(
                 expand=True,
             ),
         )
+
+
+@app.command("verify")
+def verify_data() -> None:
+    """Check the bundled compliance data against its integrity manifest.
+
+    Exit code 0 when every framework file matches ``MANIFEST.sha256``;
+    1 on any modified, missing or unlisted file (THREAT_MODEL.md T4).
+    Use it as a CI gate or before trusting a report produced on an
+    unfamiliar machine.
+    """
+    result = verify_manifest()
+    console = get_console()
+    if result.ok:
+        console.print(
+            f"[argos.ok]compliance data verified:[/] {len(result.checked)} files match "
+            f"[argos.brand]{MANIFEST_FILENAME}[/]",
+        )
+        for name in result.checked:
+            console.print(f"  [argos.muted]ok[/]  {name}")
+        raise typer.Exit(code=0)
+
+    get_err_console().print(
+        f"[argos.danger]compliance data integrity failure:[/] {result.summary()}"
+    )
+    for name in result.mismatched:
+        get_err_console().print(f"  [argos.danger]modified[/]  {name}")
+    for name in result.missing:
+        get_err_console().print(f"  [argos.danger]missing[/]   {name}")
+    for name in result.unlisted:
+        get_err_console().print(f"  [argos.warn]unlisted[/]  {name}")
+    get_err_console().print(
+        "[argos.muted]Regenerate with scripts/build_compliance_manifest.py only if the "
+        "change is intentional.[/]",
+    )
+    raise typer.Exit(code=1)
