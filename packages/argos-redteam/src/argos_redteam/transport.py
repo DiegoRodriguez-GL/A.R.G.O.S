@@ -9,8 +9,10 @@ Two concrete transports ship today:
   configured with a script of ``(pattern, response)`` pairs.
 
 Both implement :class:`AgentTransport`. New transports plug in by
-subclassing the ABC. LangGraph integration lives on top of HttpTransport
-as a thin adapter in ``argos_redteam.adapters.langgraph``.
+subclassing the ABC. Agents that run in-process (LangChain / LangGraph)
+are observed at the tool boundary instead, through the callback handler
+in ``argos_proxy.integrations.langchain``, which feeds every tool call to
+the same detector chain the audit proxy uses.
 """
 
 from __future__ import annotations
