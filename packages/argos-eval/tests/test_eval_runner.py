@@ -250,7 +250,7 @@ class _HangingAgent(LabAgent):
     def _script(self) -> list[tuple[str, str]]:
         return []
 
-    async def send(self, transcript):  # type: ignore[no-untyped-def]  # noqa: ARG002
+    async def send(self, transcript):  # type: ignore[no-untyped-def]
         await asyncio.sleep(30)
         from argos_redteam.models import Message, Role
 

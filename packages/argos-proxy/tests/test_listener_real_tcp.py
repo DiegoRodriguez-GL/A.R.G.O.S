@@ -100,7 +100,7 @@ async def _send_ndjson_request(
     parsed: Any = json.loads(line)
     if not isinstance(parsed, dict):
         msg = f"expected JSON object, got {type(parsed).__name__}"
-        raise AssertionError(msg)
+        raise TypeError(msg)
     return parsed
 
 

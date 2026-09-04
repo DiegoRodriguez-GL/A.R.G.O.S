@@ -33,7 +33,7 @@ from argos_redteam.models import Message, Role, Transcript
 
 
 class _HangingTransport(AgentTransport):
-    async def send(self, transcript: Transcript) -> Message:  # noqa: ARG002
+    async def send(self, transcript: Transcript) -> Message:
         await asyncio.sleep(30)  # would hang beyond any reasonable timeout
         return Message(role=Role.ASSISTANT, content="")
 
