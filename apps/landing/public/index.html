@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none';">
+  <meta name="referrer" content="no-referrer">
+  <title>ARGOS - Agent Risk Governance and Operational Security</title>
+  <style>
+    :root {
+      --green-600: #059669; --green-500: #10b981; --green-400: #34d399; --green-50: #ecfdf5;
+      --ink-900: #111827; --ink-800: #1f2937; --ink-700: #374151; --ink-500: #6b7280; --ink-200: #e5e7eb; --ink-50: #f9fafb;
+      --paper: #ffffff; --night: #0a0e17;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); color: var(--ink-900); background: var(--paper); line-height: 1.6; }
+    a { color: var(--green-600); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+    header { background: var(--night); color: var(--ink-50); padding: 72px 0 64px; }
+    header .eyebrow { color: var(--green-400); font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    header h1 { font-size: 3rem; margin: 12px 0 8px; letter-spacing: -0.02em; }
+    header p.lead { font-size: 1.25rem; color: var(--ink-200); max-width: 720px; margin: 0 0 32px; }
+    .cta { display: inline-block; background: var(--green-600); color: #fff; padding: 12px 22px; border-radius: 8px; font-weight: 600; margin-right: 12px; }
+    .cta.secondary { background: transparent; border: 1px solid var(--green-400); color: var(--green-400); }
+    pre { background: var(--ink-800); color: var(--ink-50); padding: 16px 20px; border-radius: 8px; font-family: var(--mono); font-size: 0.9rem; overflow-x: auto; }
+    section { padding: 56px 0; border-bottom: 1px solid var(--ink-200); }
+    h2 { font-size: 1.75rem; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .sub { color: var(--ink-500); margin: 0 0 32px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+    .card { border: 1px solid var(--ink-200); border-radius: 10px; padding: 20px; background: var(--ink-50); }
+    .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--ink-700); font-size: 0.95rem; }
+    .card code { font-family: var(--mono); font-size: 0.85rem; color: var(--green-600); }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+    .stat { background: var(--green-50); border-radius: 10px; padding: 18px; }
+    .stat b { display: block; font-size: 1.6rem; color: var(--green-600); }
+    .stat span { color: var(--ink-700); font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--ink-200); vertical-align: top; }
+    th { background: var(--green-50); color: var(--ink-900); }
+    footer { padding: 32px 0; color: var(--ink-500); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">Open source - AGPL-3.0 - local-first</div>
+      <h1>ARGOS</h1>
+      <p class="lead">Agent Risk Governance and Operational Security. A security audit framework for AI agents built on the Model Context Protocol: static scanning, red teaming, a transparent audit proxy and compliance-mapped reports, from one CLI, without sending anything to the cloud.</p>
+      <a class="cta" href="docs/">Read the docs</a>
+      <a class="cta secondary" href="https://github.com/DiegoRodriguez-GL/A.R.G.O.S">Source on GitHub</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="wrap">
+      <h2>Try it in 30 seconds</h2>
+      <p class="sub">One command runs every capability against bundled fixtures.</p>
+      <pre>uv pip install argos-ai-audit
+argos demo</pre>
+      <div class="stats">
+        <div class="stat"><b>17</b><span>static rules over MCP configurations</span></div>
+        <div class="stat"><b>20</b><span>red-team probes across OWASP ASI01-ASI10</span></div>
+        <div class="stat"><b>0.054 ms</b><span>proxy p95 latency with all detectors</span></div>
+        <div class="stat"><b>5</b><span>compliance frameworks, 125 controls</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Four ways to look at an agent</h2>
+      <p class="sub">Each one produces the same finding shape, with evidence and compliance references.</p>
+      <div class="grid">
+        <div class="card"><h3>Static scanner</h3><p><code>argos scan</code> reads Claude Desktop, VS Code and mcp-spec configurations and flags secrets, dangerous shell and Docker patterns, unpinned supply chain, tool poisoning and over-broad filesystem access.</p></div>
+        <div class="card"><h3>Red teaming</h3><p><code>argos redteam</code> sends single- and multi-turn probes to an HTTP agent endpoint and classifies replies with string, regex, behaviour and optional LLM-judge detectors.</p></div>
+        <div class="card"><h3>Audit proxy</h3><p><code>argos proxy run</code> sits between client and server over stdio, TCP, streamable-HTTP or SSE, detects tool drift, PII and out-of-scope calls, emits OpenTelemetry spans and keeps a SQLite trail.</p></div>
+        <div class="card"><h3>In-process callback</h3><p>A LangChain / LangGraph callback handler routes tool calls that never touch the wire through the same detector chain.</p></div>
+        <div class="card"><h3>Evaluation lab</h3><p><code>argos eval</code> runs six deterministic agents against every probe and reports a confusion matrix with Wilson intervals, pinned as a regression test.</p></div>
+        <div class="card"><h3>Reports</h3><p><code>argos report</code> renders a self-contained HTML file with a cross-framework compliance matrix, strict CSP and secrets redacted by default.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Compliance graph</h2>
+      <p class="sub">OWASP ASI is the hub; every threat maps to auditable controls in four other frameworks, verified in CI.</p>
+      <table>
+        <tr><th>Framework</th><th>Scope</th><th>Controls</th></tr>
+        <tr><td>OWASP Agentic Security Initiative</td><td>Ten agentic threats plus operational refinements</td><td>24</td></tr>
+        <tr><td>CSA AI Controls Matrix v1.0</td><td>AI-specific subset</td><td>21</td></tr>
+        <tr><td>EU AI Act (2024/1689)</td><td>Articles 9-15, Annex III and IV</td><td>16</td></tr>
+        <tr><td>NIST AI RMF 1.0</td><td>GOVERN, MAP, MEASURE, MANAGE</td><td>25</td></tr>
+        <tr><td>ISO/IEC 42001:2023</td><td>Annex A controls</td><td>39</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>Principles</h2>
+      <div class="grid">
+        <div class="card"><h3>CLI-first</h3><p>The terminal is the primary surface. Reports are static files.</p></div>
+        <div class="card"><h3>Local-only</h3><p>No cloud, no SaaS, no telemetry unless you point it at your own collector.</p></div>
+        <div class="card"><h3>Zero-trust LLM</h3><p>The model is treated as a potentially hostile user.</p></div>
+        <div class="card"><h3>Verifiable</h3><p>Every prompt, response and tool call is logged and tied to evidence.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">ARGOS is released under AGPL-3.0-or-later. <a href="docs/">Documentation</a> - <a href="https://github.com/DiegoRodriguez-GL/A.R.G.O.S">GitHub</a></div>
+  </footer>
+</body>
+</html>

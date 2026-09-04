@@ -1,0 +1,73 @@
+site_name: ARGOS
+site_description: Agent Risk Governance and Operational Security. Security audit framework for MCP-based AI agents.
+site_url: https://diegorodriguez-gl.github.io/A.R.G.O.S/docs/
+repo_url: https://github.com/DiegoRodriguez-GL/A.R.G.O.S
+repo_name: DiegoRodriguez-GL/A.R.G.O.S
+edit_uri: edit/main/apps/docs/docs/
+copyright: AGPL-3.0-or-later
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: teal
+      accent: green
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: green
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/argos.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Methodology: methodology/index.md
+  - Modules:
+      - Static scanner: modules/scanner.md
+      - YAML rules: modules/rules.md
+      - Red teaming: modules/redteam.md
+      - Audit proxy: modules/proxy.md
+      - LangChain callback: modules/langchain.md
+      - Reports: modules/reports.md
+      - Evaluation lab: modules/eval.md
+  - Compliance reference: compliance.md
+  - CLI reference: cli.md
+  - API reference: api.md
+  - Security: security.md
+  - Contributing: contributing.md

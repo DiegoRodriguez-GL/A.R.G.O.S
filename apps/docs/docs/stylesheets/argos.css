@@ -1,0 +1,24 @@
+/* ARGOS accents on top of Material. Palette from design-system/tokens.json. */
+:root {
+  --md-primary-fg-color: #059669;
+  --md-primary-fg-color--light: #10b981;
+  --md-primary-fg-color--dark: #047857;
+  --md-accent-fg-color: #22c55e;
+  --md-typeset-a-color: #059669;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #0a0e17;
+  --md-default-fg-color: #f3f4f6;
+  --md-typeset-a-color: #34d399;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: #ecfdf5;
+  color: #064e3b;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: #064e3b;
+  color: #d1fae5;
+}

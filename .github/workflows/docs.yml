@@ -1,8 +1,8 @@
 name: docs
 
-# Manual-only until Module 8 lands apps/landing (Astro) and apps/docs (MkDocs).
-# Once those are populated, add a push trigger with path filters limited to
-# apps/docs/** and apps/landing/**.
+# Builds the static landing (apps/landing/public) and the MkDocs site
+# (apps/docs) into one Pages artefact. Deployment stays manual
+# (workflow_dispatch) so publishing is always an explicit decision.
 on:
   workflow_dispatch:
 
@@ -31,7 +31,7 @@ jobs:
       - name: Guard -- require at least one site to build
         id: guard
         run: |
-          if [ ! -f apps/landing/package.json ] && [ ! -f apps/docs/mkdocs.yml ]; then
+          if [ ! -f apps/landing/public/index.html ] && [ ! -f apps/docs/mkdocs.yml ]; then
             echo "::notice::Nothing to build (landing and docs not yet populated)."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
@@ -62,7 +62,7 @@ jobs:
         working-directory: apps/docs
         run: |
           python -m pip install --upgrade pip
-          pip install mkdocs mkdocs-material mkdocstrings[python]
+          pip install "mkdocs>=1.6,<2" "mkdocs-material>=9.5,<10" "pymdown-extensions>=10"
           mkdocs build --strict --site-dir ../../dist-site/docs
 
       - name: Assemble site
@@ -71,6 +71,8 @@ jobs:
           mkdir -p dist-site
           if [ -d apps/landing/dist ]; then
             cp -R apps/landing/dist/. dist-site/
+          elif [ -d apps/landing/public ]; then
+            cp -R apps/landing/public/. dist-site/
           fi
           if [ ! -f dist-site/index.html ] && [ ! -d dist-site/docs ]; then
             echo "::error::dist-site is empty; refusing to deploy a blank Pages site."

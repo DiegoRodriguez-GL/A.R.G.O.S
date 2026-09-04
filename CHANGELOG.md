@@ -6,6 +6,124 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added -- Consolidation (September 2026)
+
+- `argos_core.compliance.manifest`: `MANIFEST.sha256` shipped next to the
+  compliance data, verified on every `load_controls()`
+  (`ComplianceIntegrityWarning` on drift) and through the new
+  `argos compliance verify` command (exit 1 on modified / missing / unlisted
+  files). `scripts/build_compliance_manifest.py [--check]` regenerates it.
+- `argos_core.redaction`: shared credential and PII masking (OpenAI,
+  Anthropic, GitHub, Google, AWS, Slack, Stripe, JWT, bearer values, PEM
+  private keys, emails). The red-team runner keeps its import path;
+  `render_html` now redacts every free-text field by default and
+  `argos report --no-redact` requires confirmation or `--yes`.
+- `argos_proxy.integrations.langchain`: `ArgosCallbackHandler` and
+  `AsyncArgosCallbackHandler` translate LangChain / LangGraph callbacks into
+  `tools/call` requests, responses and `notifications/argos/*` and run them
+  through the proxy detector chain (OTel + PII + scope), with optional SQLite
+  forensics and `enforce=True` to veto out-of-scope tools before they run.
+  `langchain-core` is optional.
+- `argos_proxy.detectors.adapter.to_core_finding`: lifts proxy findings into
+  `argos_core.Finding` with compliance references resolved from the M1 graph.
+- `argos proxy run --allow-external`: non-loopback binds are refused unless
+  the flag is present; a machine-readable JSON identity line (pid, socket,
+  upstream, forensics database) is printed at startup.
+- `argos status` lists every plugin discovered through entry points with its
+  distribution and version.
+- CI: new `self-audit` job runs `scripts/argos_self_audit.py` and
+  `argos compliance verify` on every push and uploads the report.
+- 82 new tests (1,368 total).
+
+### Changed -- Consolidation (September 2026)
+
+- CI pins `uv` 0.11.6 (the previous 0.4.18 could not read the lockfile) and
+  every workflow references the Dependabot-bumped action versions
+  (setup-python 6.2.0, upload-artifact 7.0.1, upload-pages-artifact 5.0.0,
+  setup-uv 8.1.0, gh-action-pypi-publish 1.14.0).
+- `pydantic` is declared as a direct dependency of `argos-cli`, `argos-proxy`,
+  `argos-redteam` and `argos-rules`.
+- Repository metadata, README and policies point to the real repository
+  (`DiegoRodriguez-GL/A.R.G.O.S`).
+- `THREAT_MODEL.md` 0.3 and `ARCHITECTURE.md` describe what the code does
+  today; planned controls are labelled as such.
+
+### Fixed -- Consolidation (September 2026)
+
+- Three `ruff` findings that had kept the `lint` job red since April
+  (`RUF100`, `TRY004`).
+- `ANTHROPIC_KEY` is matched before `OPENAI_KEY` so `sk-ant-` tokens carry the
+  correct redaction label.
+
+### Added -- Proxy transports (A1)
+
+- Streamable-HTTP (MCP 2025-03-26) and legacy SSE transports implemented over
+  raw asyncio with a hand-written HTTP/1.1 parser (`ChunkedDecoder`,
+  anti-smuggling checks: conflicting `Content-Length`, `Content-Length` +
+  chunked, oversized headers) and a WHATWG SSE parser.
+- `ProxyListener(framing="http")`, `HttpStreamableUpstreamFactory`,
+  `SseUpstreamFactory`; `argos proxy run -u http://... | sse://...`.
+- 92 tests over real TCP sockets, including smuggling and slowloris cases.
+
+### Added -- Onboarding and self-audit
+
+- `argos demo`: guided tour (scan, canonical eval, proxy bench, compliance)
+  in under ten seconds with zero arguments; `argos quickstart` cheat sheet.
+- `scripts/argos_self_audit.py`: runs every CLI verb over the repository's own
+  fixtures and writes a consolidated `REPORT.md` with the captured artefacts.
+
+### Added -- Proxy listener (P1)
+
+- Real multi-session TCP listener with `max_sessions`, per-session idle
+  timeout, graceful drain on shutdown and a `server_busy` notice when the cap
+  is reached. Per-session upstream factories (stdio, TCP, in-memory).
+- `argos proxy run` wired to the listener with detector flags
+  (`--drift/--no-drift`, `--pii/--no-pii`, `--allow-tool`, `--otel/--no-otel`).
+
+### Added -- Module 7 (empirical evaluation)
+
+- `argos-eval` package: six deterministic lab agents (ReAct, LangGraph
+  supervisor-worker, memory + RAG; vulnerable and hardened variants), YAML
+  ground truth, async suite runner, precision / recall / specificity /
+  accuracy / F1 / MCC with Wilson intervals and bootstrap, JSON / Markdown /
+  CSV / HTML exports and `EvalReport.diff`.
+- `argos eval` command and `scripts/canonical_eval.py`; canonical result
+  pinned by `test_canonical_metrics.py` (120 trials, TP=20, TN=100, FP=FN=0).
+- Public methodology in `docs/empirical-evaluation.md`.
+
+### Added -- Module 6 (HTML reports)
+
+- `render_html` for scan and red-team results: cover, executive summary,
+  ASI category breakdown, cross-framework compliance matrix, finding cards
+  with evidence, methodology appendix, print stylesheet.
+- `render_eval_html` for evaluation reports.
+- `argos report [--demo]`.
+
+### Added -- Module 5 (audit proxy)
+
+- Typed JSON-RPC 2.0 layer with NDJSON and `Content-Length` framing.
+- `ProxyServer` with `ChainInterceptor`; upstream-initiated requests
+  (sampling / elicitation) pass through the interceptor as well.
+- Detectors: `ToolDriftDetector` (baseline pinning, warn / block),
+  `PIIDetector` (emails, IBAN mod-97, Luhn cards, DNI / NIE),
+  `ScopeDetector` (method / tool allowlists).
+- OpenTelemetry spans per message; SQLite forensics store with WAL.
+- `argos proxy bench` enforcing RNF-02 (p95 < 50 ms; measured 0.054 ms).
+- Three adversarial audit passes: six real defects fixed with regression
+  tests.
+
+### Added -- Module 4 (red teaming)
+
+- 20 probes across OWASP ASI01-ASI10 (two per category, February 2025
+  T1-T10 numbering), `StringMatch` / `Regex` / `LLMJudge` / `Behavior`
+  detectors, single-turn and multi-turn strategies.
+- `HttpTransport` with retries, `User-Agent` identification and a
+  `--max-requests` denial-of-wallet cap; `MockTransport` for tests.
+- Concurrent runner with per-probe error isolation.
+- Adversarial audit: eight detector / runner defects fixed with regression
+  guards (`test_bugs_audit.py`).
+- `argos redteam` and `argos doctor` (auto-detection of MCP client configs).
+
 ### Added -- Module 3 (YAML rules engine)
 
 - `argos-rules` package: Nuclei-inspired DSL with frozen Pydantic models,
@@ -28,8 +146,6 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   findings in a single `ScanResult` with the same Finding shape.
 - New CLI flags: `argos scan --rules-dir PATH` and
   `argos rules validate FILE_OR_DIR`.
-- ~89 new tests covering parser, selectors, matchers, engine and CLI
-  integration.
 
 ### Added -- Module 2 (static MCP scanner)
 
@@ -48,8 +164,6 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   present.
 - Fixtures: `clean.claude_desktop.json`, `risky.claude_desktop.json`,
   `mcp_spec.json`.
-- Test suite: parser (9 cases), rules (20 cases), engine (9 cases),
-  CLI integration (6 cases). 54 new tests total.
 - Every finding carries `compliance_refs` qualified ids that resolve in
   the Module 1 mapping graph.
 
@@ -73,6 +187,8 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Consolidated the four CLI skeleton commands onto a single
   `not_implemented()` helper (`commands/_placeholder.py`); per-command
   files now contain only their Typer signature.
+- Property-based tests with Hypothesis; unicode, ANSI and denial-of-wallet
+  hardening across parsers, models and the red-team transport.
 
 ### Added -- Module 1 (Methodology and compliance mapping)
 
