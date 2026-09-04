@@ -9,9 +9,9 @@ colour-coded cards).
 
 from __future__ import annotations
 
-from argos_reporter.render import render_html
+from argos_reporter.render import redact_finding, redact_result, render_html
 from argos_reporter.render_eval import render_eval_html
 
-__all__ = ["render_eval_html", "render_html"]
+__all__ = ["redact_finding", "redact_result", "render_eval_html", "render_html"]
 
 __version__ = "0.0.1"

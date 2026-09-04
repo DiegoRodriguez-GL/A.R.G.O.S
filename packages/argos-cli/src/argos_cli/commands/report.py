@@ -169,6 +169,20 @@ def report(
         bool,
         typer.Option("--demo", help="Render a self-contained demo report. Overrides --input."),
     ] = False,
+    redact_evidence: Annotated[
+        bool,
+        typer.Option(
+            "--redact/--no-redact",
+            help=(
+                "Mask credentials and emails in evidence before rendering "
+                "(default on). --no-redact asks for confirmation unless --yes."
+            ),
+        ),
+    ] = True,
+    assume_yes: Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Skip the --no-redact confirmation prompt."),
+    ] = False,
 ) -> None:
     """Render ARGOS findings into a self-contained HTML report."""
     if output_format != "html":
@@ -195,8 +209,25 @@ def report(
             get_err_console().print(f"[argos.danger]report error:[/] {exc}")
             raise typer.Exit(code=2) from exc
 
-    html = render_html(result)
+    if not redact_evidence and not assume_yes:
+        # THREAT_MODEL.md T6: writing captured secrets verbatim to a file
+        # that will be shared is a deliberate decision, never a default.
+        confirmed = typer.confirm(
+            "Render evidence WITHOUT redaction? Captured secrets and emails "
+            "will be written verbatim to the HTML file.",
+            default=False,
+        )
+        if not confirmed:
+            get_err_console().print("[argos.warn]aborted:[/] report not written.")
+            raise typer.Exit(code=1)
+
+    html = render_html(result, redact_evidence=redact_evidence)
     output_path.write_text(html, encoding="utf-8")
+    if not redact_evidence:
+        get_err_console().print(
+            "[argos.warn]warning:[/] evidence rendered without redaction; "
+            "treat the output file as sensitive.",
+        )
     get_console().print(
         f"[argos.ok]report written:[/] {output_path} "
         f"([argos.muted]{len(html):,} bytes, "

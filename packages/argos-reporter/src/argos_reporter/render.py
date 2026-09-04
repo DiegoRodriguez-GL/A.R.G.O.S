@@ -14,7 +14,8 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Final
 
-from argos_core import Finding, ScanResult, Severity
+from argos_core import Evidence, Finding, ScanResult, Severity
+from argos_core.redaction import redact
 
 from argos_reporter.html import build_env
 
@@ -53,6 +54,50 @@ _ASI_TITLES: Final[dict[str, str]] = {
     "ASI09": "Identity Spoofing",
     "ASI10": "HITL Overwhelm",
 }
+
+
+def _redact_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+    return redact(value, include_pii=True)
+
+
+def _redact_evidence(ev: Evidence) -> Evidence:
+    return ev.model_copy(
+        update={
+            "summary": _redact_text(ev.summary),
+            "request": _redact_text(ev.request),
+            "response": _redact_text(ev.response),
+            "blob": _redact_text(ev.blob),
+        },
+    )
+
+
+def redact_finding(finding: Finding) -> Finding:
+    """Return a copy of ``finding`` with credentials and emails masked.
+
+    THREAT_MODEL.md T6: the report is a file that leaves the auditor's
+    control (email, ticketing system, archive). Free-text fields are
+    the only place a captured secret can survive into it, so every one
+    of them passes through :func:`argos_core.redaction.redact` with
+    the PII set enabled. Structural fields (ids, severities, refs) are
+    untouched.
+    """
+    return finding.model_copy(
+        update={
+            "title": redact(finding.title, include_pii=True),
+            "description": redact(finding.description, include_pii=True),
+            "remediation": _redact_text(finding.remediation),
+            "evidence": tuple(_redact_evidence(ev) for ev in finding.evidence),
+        },
+    )
+
+
+def redact_result(result: ScanResult) -> ScanResult:
+    """Apply :func:`redact_finding` to every finding of ``result``."""
+    return result.model_copy(
+        update={"findings": tuple(redact_finding(f) for f in result.findings)},
+    )
 
 
 def _severity_key(sev: Severity) -> str:
@@ -177,8 +222,17 @@ def render_html(
     result: ScanResult,
     *,
     generator_version: str = "0.0.1",
+    redact_evidence: bool = True,
 ) -> str:
-    """Render ``result`` as a single self-contained HTML document."""
+    """Render ``result`` as a single self-contained HTML document.
+
+    ``redact_evidence`` (default on) masks credentials and emails in
+    every free-text field before rendering (THREAT_MODEL.md T6). Pass
+    ``False`` only when the operator has explicitly accepted that the
+    document will contain the captured secrets verbatim.
+    """
+    if redact_evidence:
+        result = redact_result(result)
     env = build_env()
     template = env.get_template("report.html.j2")
 
