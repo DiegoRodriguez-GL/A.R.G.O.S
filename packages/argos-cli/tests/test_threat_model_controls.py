@@ -4,6 +4,7 @@ T6 (report redaction) and T7 (proxy bind policy)."""
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,14 @@ from argos_cli.commands.proxy import _is_loopback
 from argos_core import Evidence, Finding, Severity, Target, TargetKind
 from argos_core.compliance.manifest import VerificationResult
 from typer.testing import CliRunner
+
+_ANSI = re.compile(chr(27) + "[[][0-9;]*m")
+
+
+def _plain(text: str) -> str:
+    """Strip terminal colour codes so option names survive rich styling."""
+    return _ANSI.sub("", text)
+
 
 runner = CliRunner()
 
@@ -59,7 +68,7 @@ def test_proxy_run_refuses_non_loopback_bind_without_flag(tmp_path: Path) -> Non
     )
     assert result.exit_code == 2
     combined = result.stdout + (result.stderr or "")
-    assert "--allow-external" in combined
+    assert "--allow-external" in _plain(combined)
     assert not (tmp_path / "f.sqlite3").exists()
 
 

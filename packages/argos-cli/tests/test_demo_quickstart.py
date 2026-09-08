@@ -3,9 +3,18 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 from argos_cli.app import app
 from typer.testing import CliRunner
+
+_ANSI = re.compile(chr(27) + "[[][0-9;]*m")
+
+
+def _plain(text: str) -> str:
+    """Strip terminal colour codes so option names survive rich styling."""
+    return _ANSI.sub("", text)
 
 
 @pytest.fixture
@@ -54,7 +63,7 @@ class TestDemo:
     def test_demo_help_lists_quick_flag(self, runner: CliRunner) -> None:
         result = runner.invoke(app, ["demo", "--help"])
         assert result.exit_code == 0
-        assert "--quick" in result.stdout
+        assert "--quick" in _plain(result.stdout)
 
 
 # ---------------------------------------------------------------------------
