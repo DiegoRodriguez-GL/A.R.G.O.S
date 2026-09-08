@@ -9,7 +9,7 @@ import pytest
 from argos_cli.app import app
 from typer.testing import CliRunner
 
-_ANSI = re.compile(chr(27) + "[[][0-9;]*m")
+_ANSI = re.compile(chr(27) + re.escape("[") + "[0-9;]*m")
 
 
 def _plain(text: str) -> str:

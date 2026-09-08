@@ -15,7 +15,7 @@ from argos_core import Evidence, Finding, Severity, Target, TargetKind
 from argos_core.compliance.manifest import VerificationResult
 from typer.testing import CliRunner
 
-_ANSI = re.compile(chr(27) + "[[][0-9;]*m")
+_ANSI = re.compile(chr(27) + re.escape("[") + "[0-9;]*m")
 
 
 def _plain(text: str) -> str:
