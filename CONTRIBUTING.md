@@ -6,7 +6,7 @@ and what we expect from a merge-ready change.
 ## Ground rules
 
 1. **Scope matters.** ARGOS is intentionally narrow -- see
-   [`docs-internal/PLAN.md`](docs-internal/PLAN.md) §2. Features outside the
+   the scope described in the README. Features outside the
    declared scope land as `[EXTENSIÓN]` and are deferred.
 2. **Security first.** ARGOS is a security tool. Never introduce code that
    weakens the project's own threat model (see

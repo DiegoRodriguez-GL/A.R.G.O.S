@@ -108,7 +108,7 @@ def _severity_key(sev: Severity) -> str:
 def _format_date_human(dt: datetime) -> str:
     """Locale-neutral date for the cover page (``23 April 2026``)."""
     # Using the default English locale keeps renders deterministic across
-    # platforms (the demo must read the same in any machine).
+    # platforms (a demo must read the same on any machine).
     return dt.strftime("%d %B %Y")
 
 

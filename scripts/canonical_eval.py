@@ -6,7 +6,7 @@ Run:
 
 Identical to invoking ``argos eval`` with default parameters (full
 catalogue, default ground truth, seed 0). Provided as a stand-alone
-script so a external reviewer or a CI job can pin the canonical output
+script so a reviewer or a CI job can pin the canonical output
 without depending on the CLI being on PATH.
 
 The script exits 0 when the run is clean (FP = FN = 0), 1 otherwise.

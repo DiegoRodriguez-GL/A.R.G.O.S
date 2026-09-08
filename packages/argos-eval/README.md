@@ -9,9 +9,9 @@ Wilson score confidence intervals (Wilson 1927) and non-parametric
 bootstrap intervals (Efron 1979). Everything is pure Python, fully
 typed and reproducible from a fixed seed.
 
-It is the foundation Module 7 (empirical validation, OE6) of the ARGOS
-project builds on; later phases plug ARGOS probes plus deterministic lab
-agents on top to produce the actual benchmark.
+It is the foundation of Module 7 (empirical validation): the lab agents
+and the suite runner plug ARGOS probes on top of it to produce the
+actual benchmark.
 
 ## Status
 

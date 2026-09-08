@@ -96,7 +96,7 @@ auditor's environment can emit false negatives.
   built-in by reusing its name.
 - *Planned:* a signed manifest of first-party plugin hashes checked at release
   time. Deferred until the plugin ecosystem exists; tracked in
-  `.argos/PROGRESS.md` §25.
+  the roadmap section of the README.
 
 ### T4. Tampered compliance data (target A4)
 
@@ -201,4 +201,4 @@ and prompts directly from the agent process.
 | 0.2 | Modules 2, 4, 5 | Hardening passes: recursion limits, ANSI rejection, reverse-request interception |
 | 0.3 | Post-M7 consolidation | T3/T4/T6/T7 controls implemented in code; T9 added for the callback integration; planned items labelled explicitly |
 
-External review is requested once before the first release.
+External review is requested before the first tagged release.

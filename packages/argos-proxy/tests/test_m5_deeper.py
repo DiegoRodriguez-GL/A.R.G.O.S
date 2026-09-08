@@ -1,6 +1,6 @@
 """M5 audit, second adversarial pass.
 
-Each section attacks a property a external reviewer or a real adversary
+Each section attacks a property an external reviewer or a real adversary
 might raise:
 
 1. JSON-RPC spec edges (int64+, BOM, duplicate keys, deep nesting,

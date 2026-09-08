@@ -3,7 +3,7 @@ tests, cross-validation invariants, subprocess determinism and a
 probe-seed quality audit.
 
 These tests sit alongside :mod:`test_m7_deep_audit`; together they
-cover the pipeline from every angle a external reviewer is likely to
+cover the pipeline from every angle an external reviewer is likely to
 attack:
 
 - Output formats beyond HTML / JSON.
@@ -404,7 +404,7 @@ class TestCrossValidationInvariant:
 class TestSubprocessDeterminism:
     """Two CLI invocations of ``argos eval --json X.json`` with the
     same arguments must produce byte-identical case classifications.
-    This is the guarantee a external reviewer expects when reproducing the
+    This is the guarantee an external reviewer expects when reproducing the
     canonical run."""
 
     def test_two_subprocess_runs_produce_identical_classifications(self, tmp_path: Path) -> None:

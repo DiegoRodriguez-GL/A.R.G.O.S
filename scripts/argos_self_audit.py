@@ -5,12 +5,12 @@ The script runs every ARGOS tool (``status``, ``rules list``,
 project's own fixtures and lab benchmark, captures each tool's output
 and renders a single consolidated Markdown report.
 
-Why dogfooding matters for the project:
+Why dogfooding matters:
 
 - It demonstrates that ARGOS is operationally complete: every CLI verb
   has a real, repeatable execution path.
 - It produces a reproducible artefact (the report) that can be attached
-  to the empirical chapter as evidence of "the tool was run; here are
+  to an audit or release report as evidence of "the tool was run; here are
   the numbers".
 - It surfaces operational regressions that unit tests miss (e.g. a CLI
   flag drift, a path that does not exist anymore, an environment

@@ -6,8 +6,7 @@ whose internal numbering is ``T1..T15`` but which maps one-to-one to
 ``ASI01..ASI10`` for the first ten categories. The later ``OWASP
 Top 10 for Agentic Applications 2026`` (December 2025) reuses the
 ``ASI01..ASI10`` prefix with a different ordering; a cross-reference
-table is kept in ``docs/asi-taxonomy-crossref.md`` and in the project
-dossier. See :data:`OWASP_ASI_TAXONOMY_SOURCE`.
+table is kept in ``docs/asi-taxonomy-crossref.md``. See :data:`OWASP_ASI_TAXONOMY_SOURCE`.
 """
 
 from __future__ import annotations

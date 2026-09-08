@@ -8,8 +8,8 @@ The forensics layer answers two operator questions:
 
 Both go through a single SQLite database with WAL mode enabled. The
 schema is intentionally minimal -- raw payloads as JSON blobs, plus
-indexed metadata columns. This is denormalised on purpose: a project
-reviewer wants to grep the file with ``sqlite3``, not learn an ORM.
+indexed metadata columns. This is denormalised on purpose: an
+auditor wants to grep the file with ``sqlite3``, not learn an ORM.
 
 The database file is created lazily on first write. Closing the store
 flushes the WAL. The store is async-safe via a single connection

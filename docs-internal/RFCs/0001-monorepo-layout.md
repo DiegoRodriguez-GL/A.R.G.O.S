@@ -16,7 +16,7 @@ independent wheel to PyPI.
 
 ## Motivation
 
-The proposal (project §5) requires six capabilities (OE1-OE6) that share a common
+The project scope requires six capabilities (OE1 to OE6) that share a common
 data model, compliance mapping and CLI but have wildly different dependencies
 (async servers, Jinja templates, YAML rules). A single mega-package would
 couple release cadences and inflate install footprint for users who only want
@@ -43,7 +43,7 @@ argos/
 │   └── docs/                    # MkDocs Material (Module 8)
 ├── design-system/               # Authoritative tokens.json + DESIGN_SYSTEM.md
 ├── scripts/                     # Repo-level tools (build_tokens.py, ...)
-├── docs-internal/               # PLAN.md, THREAT_MODEL.md, RFCs/
+├── docs-internal/               # ARCHITECTURE.md, THREAT_MODEL.md, RFCs/
 ├── benchmarks/                  # Reproducible benchmarks (Module 7)
 └── examples/                    # Runnable agents used by M7 validation
 ```

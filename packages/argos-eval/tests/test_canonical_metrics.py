@@ -16,7 +16,7 @@ Two layers of assertion:
   rounds to the same number.
 
 The test is intentionally aggressive: zero tolerance to drift in the
-canonical run is what makes the empirical chapter of the project a stable
+canonical run is what makes the published empirical results a stable
 artefact across commits.
 """
 

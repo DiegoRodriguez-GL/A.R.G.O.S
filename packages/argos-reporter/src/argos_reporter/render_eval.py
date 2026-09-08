@@ -19,7 +19,7 @@ Sections in order:
 7. Methodology appendix: cited references and validity discussion.
 
 The function is deterministic: passing the same EvalReport produces
-byte-identical HTML, which means a audit report that pins the report
+byte-identical HTML, which means a document that pins the report
 hash gets a meaningful integrity check for free.
 """
 

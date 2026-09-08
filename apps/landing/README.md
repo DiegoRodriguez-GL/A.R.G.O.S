@@ -7,6 +7,6 @@ Static landing page for <https://diegorodriguez-gl.github.io/A.R.G.O.S>.
 external assets). The `docs.yml` workflow copies `public/` to the root of
 the Pages site and places the MkDocs build under `docs/`.
 
-The Astro rewrite sketched in `docs-internal/PLAN.md` (D3) was not pursued:
+An Astro rewrite was considered and not pursued:
 one page with no build step is easier to audit, ships the same content and
 keeps the deployment reproducible.

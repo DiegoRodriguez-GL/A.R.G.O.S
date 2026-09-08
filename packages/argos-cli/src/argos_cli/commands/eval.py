@@ -8,7 +8,7 @@ the results against the canonical ground truth and writes:
   per-agent breakdowns, and the methodology appendix.
 - Optionally a JSON dump of the raw :class:`argos_eval.EvalReport`
   (``--json <path>``) for downstream analysis or for pinning a
-  reproducible artefact in a audit report.
+  reproducible artefact in an audit report.
 
 The command is fully reproducible: no external network, no LLM
 sampling, deterministic agents. Two invocations against the same

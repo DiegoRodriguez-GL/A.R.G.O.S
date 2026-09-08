@@ -2,8 +2,8 @@
 loader fuzzing, thread safety of cached state, idempotent YAML
 serialization, duplicate-case handling and lab agent regex hygiene.
 
-Each section probes a property a external reviewer might raise on the
-empirical chapter:
+Each section probes a property an external reviewer might raise on the
+empirical results:
 
 - ``diff()``: when the canonical run is pinned in main and a feature
   branch alters a probe, the regression CI gate must surface that as a

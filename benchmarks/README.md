@@ -9,4 +9,4 @@ Each scenario lives under `scenarios/<name>/` and contains:
 - `probes.yaml` -- which probes to run (used by `argos redteam`)
 - `expected.jsonl` -- ground-truth findings for TP/FP/FN accounting
 
-See `docs-internal/PLAN.md` §4 Module 7 for the full contract.
+See `docs/empirical-evaluation.md` for the full contract.

@@ -1,8 +1,7 @@
 # ARGOS Architecture (C4 sketch)
 
 This is the short architecture brief. Deep designs live in module-specific
-RFCs under `docs-internal/RFCs/` and in the per-module sections of
-`.argos/PROGRESS.md`.
+RFCs under `docs-internal/RFCs/` and in the changelog.
 
 ## C1 -- System context
 

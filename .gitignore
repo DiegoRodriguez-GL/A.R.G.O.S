@@ -91,7 +91,7 @@ dmypy.json
 .sublime-workspace
 
 # =============================================================================
-# Local-only working notes (NEVER commit)
+# Local-only working notes and self-audit output
 # =============================================================================
 .argos/
 .notes/

@@ -2,7 +2,7 @@
 
 When you report a metric like "precision = 0.83" without a confidence
 interval, you imply you measured it perfectly. With small samples, the
-real precision could be anywhere from 0.6 to 0.95. The benchmark write-up
+real precision could be anywhere from 0.6 to 0.95. Any serious benchmark
 must report uncertainty alongside the point estimate; this module
 gives the two CIs everyone expects in a benchmark paper.
 
