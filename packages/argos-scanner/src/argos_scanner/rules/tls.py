@@ -11,7 +11,12 @@ from argos_scanner.models import MCPConfig, MCPServer
 from argos_scanner.registry import register
 from argos_scanner.rules._base import BaseRule
 
-_LOOPBACK_HOSTS: frozenset[str] = frozenset({"localhost", "127.0.0.1", "::1"})
+_LOOPBACK_HOSTS: frozenset[str] = frozenset({"localhost", "127.0.0.1", "::1", "0.0.0.0"})  # noqa: S104
+
+#: Characters that mark a templated host (``http://{host}:{port}/mcp``).
+#: The real host is chosen when the server is installed; a static scan
+#: cannot tell whether it will be loopback, so it does not guess.
+_TEMPLATE_CHARS: frozenset[str] = frozenset("{}<>$%")
 
 
 @register
@@ -47,6 +52,8 @@ class PlaintextRemoteTransportRule(BaseRule):
             return ()
         parsed = urlparse(server.url)
         if parsed.scheme != "http":
+            return ()
+        if _TEMPLATE_CHARS & set(parsed.netloc):
             return ()
         host = (parsed.hostname or "").lower()
         if host in _LOOPBACK_HOSTS:

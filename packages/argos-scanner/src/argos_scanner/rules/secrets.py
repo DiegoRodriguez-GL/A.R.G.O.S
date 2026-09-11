@@ -13,6 +13,7 @@ import math
 import re
 from collections import Counter
 from collections.abc import Iterable
+from urllib.parse import urlsplit
 
 from argos_core import Evidence, Finding, Severity, Target
 
@@ -59,6 +60,44 @@ _PLACEHOLDER_VALUES: frozenset[str] = frozenset(
         "password",
     },
 )
+
+
+_URL_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.\-]*://")
+_CREDENTIAL_QUERY = re.compile(
+    r"(?i)[?&](?:token|key|api_key|apikey|secret|sig|signature|password|access_token)=",
+)
+_PATH_RE = re.compile(r"^(?:\.{1,2}[\\/]|[\\/]|~[\\/]|[A-Za-z]:[\\/])")
+#: Short word-like segments joined by separators: model names such as
+#: ``sentence-transformers/all-MiniLM-L6-v2`` or dotted identifiers. Random
+#: tokens have at least one long unbroken run and do not match.
+_WORDY_RE = re.compile(r"^[A-Za-z0-9]{1,12}(?:[-/._:][A-Za-z0-9]{1,12})+$")
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$")
+#: A 20-byte EVM account or contract address is public by design; a
+#: 32-byte private key (64 hex digits) does not match and stays reported.
+_EVM_ADDRESS_RE = re.compile(r"^0x[0-9A-Fa-f]{40}$")
+
+
+def _looks_structured(value: str) -> bool:
+    """True for values whose entropy comes from structure, not randomness.
+
+    URLs without embedded credentials, filesystem paths and word-like
+    identifiers routinely exceed 4 bits per character (a base URL mixes
+    letters, digits and punctuation) without being secrets. Measured on
+    the public MCP Registry, base URLs were the single largest source of
+    false positives for the entropy rule.
+    """
+    if _URL_RE.match(value):
+        parts = urlsplit(value)
+        return not parts.password and not _CREDENTIAL_QUERY.search(value)
+    if _PATH_RE.match(value):
+        return True
+    # Opaque tokens contain no whitespace and no template braces: values
+    # that do are user-agent strings, display names or ``{placeholders}``.
+    if any(c.isspace() for c in value) or ("{" in value and "}" in value):
+        return True
+    return bool(
+        _WORDY_RE.match(value) or _EMAIL_RE.match(value) or _EVM_ADDRESS_RE.match(value),
+    )
 
 
 def _shannon_entropy(s: str) -> float:
@@ -164,6 +203,8 @@ class HighEntropySecretRule(BaseRule):
             if value.lower() in _PLACEHOLDER_VALUES:
                 continue
             if len(value) < _ENTROPY_MIN_LENGTH:
+                continue
+            if _looks_structured(value):
                 continue
             # Bound worst-case cost on giant values; entropy of the first 4KiB
             # is a reliable proxy for the entropy of an opaque credential.

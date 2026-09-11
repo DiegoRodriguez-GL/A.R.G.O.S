@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 
 from argos_core import Evidence, Finding, Severity, Target
@@ -24,6 +25,23 @@ _SENSITIVE_ENV_PREFIXES: tuple[str, ...] = (
     "GITHUB_",
     "GITLAB_",
 )
+
+#: Templating syntaxes that stand for a value supplied at install or run
+#: time: ``${VAR}`` and ``$(cmd)`` (shells, VS Code), ``{name}`` (the MCP
+#: Registry's variable syntax), ``{{name}}``, ``<name>`` and ``%VAR%``.
+_PLACEHOLDER_TOKEN = re.compile(
+    r"^(?:\$\{[^}]*\}|\$\([^)]*\)|\{\{[^}]*\}\}|\{[^{}]*\}|<[^<>]*>|%[A-Za-z0-9_]+%"
+    r"|\$[A-Za-z_][A-Za-z0-9_]*)$",
+)
+_PLACEHOLDER_WORDS: frozenset[str] = frozenset(
+    {"token", "your-token", "your_token", "yourtoken", "xxx", "...", "changeme", "placeholder"},
+)
+
+
+def _is_placeholder(token: str) -> bool:
+    """True when ``token`` is a template to fill in, not a credential."""
+    stripped = token.strip()
+    return bool(_PLACEHOLDER_TOKEN.match(stripped)) or stripped.lower() in _PLACEHOLDER_WORDS
 
 
 @register
@@ -89,8 +107,9 @@ class RemoteHeaderBearerRule(BaseRule):
     severity = Severity.HIGH
     description = (
         "A remote server carries an `Authorization` header with a literal "
-        "bearer token in the configuration. Token rotates every commit and "
-        "is exposed to every reader of the repository."
+        "bearer token in the configuration (not a `${VAR}`, `{name}` or "
+        "`<name>` placeholder). The token is exposed to every reader of the "
+        "file and outlives any rotation that does not touch it."
     )
     remediation = "Reference the token via a placeholder resolved at runtime from a secret store."
     compliance_refs = (
@@ -115,7 +134,7 @@ class RemoteHeaderBearerRule(BaseRule):
             if not stripped.lower().startswith("bearer "):
                 continue
             token = stripped.split(" ", 1)[1] if " " in stripped else ""
-            if not token or token.startswith(("${", "$(")):
+            if not token or _is_placeholder(token):
                 continue
             return (
                 self.build_finding(

@@ -8,6 +8,10 @@ Recognised dialects:
   ``type`` discriminator).
 - ``mcp-spec``: draft MCP spec ``mcp.json`` (same shape as vscode variant;
   dialect reported separately for clarity in reports).
+- ``mcp-registry``: a ``server.json`` document from the official MCP
+  Registry (bare or inside the API's ``{"server": ..., "_meta": ...}``
+  envelope). Each package and remote becomes the client entry an
+  installer would write; see :mod:`argos_scanner.registry_format`.
 
 Unknown dialects are rejected early with ``UnsupportedDialectError`` so rules
 never receive a half-understood payload.
@@ -22,6 +26,12 @@ from typing import Any
 import yaml
 
 from argos_scanner.models import MCPConfig, MCPServer, TransportKind
+from argos_scanner.registry_format import (
+    REGISTRY_DIALECT,
+    is_registry_document,
+    to_client_servers,
+    unwrap_envelope,
+)
 
 _JSON_SUFFIXES: frozenset[str] = frozenset({".json"})
 _YAML_SUFFIXES: frozenset[str] = frozenset({".yaml", ".yml"})
@@ -116,7 +126,13 @@ def _detect_dialect(raw: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         # vscode and mcp-spec share shape; distinguish by presence of "inputs".
         dialect = "vscode" if "inputs" in raw else "mcp-spec"
         return dialect, raw["servers"]
-    msg = "neither 'mcpServers' nor 'servers' found at top level"
+    document = unwrap_envelope(raw)
+    if is_registry_document(document):
+        return REGISTRY_DIALECT, to_client_servers(document)
+    msg = (
+        "neither 'mcpServers' nor 'servers' found at top level, "
+        "and the document is not an MCP Registry server.json"
+    )
     raise UnsupportedDialectError(msg)
 
 

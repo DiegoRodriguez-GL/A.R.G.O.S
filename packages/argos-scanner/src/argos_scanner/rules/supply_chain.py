@@ -19,11 +19,96 @@ _DOCKER_IMAGE_TAG = re.compile(r"^[A-Za-z0-9][A-Za-z0-9\-_.\/]*:[A-Za-z0-9][A-Za
 _DOCKER_IMAGE_DIGEST = re.compile(r"@sha256:[A-Fa-f0-9]{64}$")
 
 
+#: npx options that take a value. The value of ``--package``/``-p`` is the
+#: package that gets installed; the first positional is only the binary.
+_NPX_VALUE_FLAGS: frozenset[str] = frozenset(
+    {
+        "--package",
+        "-p",
+        "--cache",
+        "--registry",
+        "--userconfig",
+        "--call",
+        "-c",
+        "--workspace",
+        "-w",
+    },
+)
+#: uvx options that take a value. ``--from`` names the package that gets
+#: installed; ``--with`` adds dependencies and is not the package itself.
+_UVX_VALUE_FLAGS: frozenset[str] = frozenset(
+    {
+        "--from",
+        "--with",
+        "--with-requirements",
+        "--with-editable",
+        "--python",
+        "-p",
+        "--index",
+        "--index-url",
+        "--extra-index-url",
+        "--default-index",
+        "--find-links",
+        "-f",
+        "--constraint",
+        "-c",
+        "--override",
+        "--directory",
+        "--cache-dir",
+        "--config-file",
+    },
+)
+
+
 def _first_non_flag(args: tuple[str, ...], start: int = 0) -> str | None:
     for i in range(start, len(args)):
         if not args[i].startswith("-"):
             return args[i]
     return None
+
+
+def _split_launcher_args(
+    args: tuple[str, ...],
+    value_flags: frozenset[str],
+) -> tuple[dict[str, list[str]], str | None]:
+    """Walk launcher arguments the way the launcher does.
+
+    Returns the options seen before the first positional (flag -> values,
+    ``--flag=value`` and ``--flag value`` alike) and that positional.
+    """
+    options: dict[str, list[str]] = {}
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if not arg.startswith("-"):
+            return options, arg
+        name, eq, inline = arg.partition("=")
+        if eq:
+            options.setdefault(name, []).append(inline)
+        elif name in value_flags and i + 1 < len(args):
+            options.setdefault(name, []).append(args[i + 1])
+            i += 1
+        else:
+            options.setdefault(name, [])
+        i += 1
+    return options, None
+
+
+def _is_local_spec(spec: str) -> bool:
+    return spec.startswith((".", "/", "~", "file:")) or "\\" in spec
+
+
+def _npm_spec_pinned(spec: str) -> bool:
+    return bool(_PINNED_SUFFIX.search(spec)) or "#" in spec or _is_local_spec(spec)
+
+
+def _python_spec_pinned(spec: str) -> bool:
+    return (
+        "==" in spec
+        or "@" in spec  # ``pkg@1.2.3`` and ``pkg @ git+...@ref``
+        or bool(_PINNED_SUFFIX.search(spec))
+        or _is_local_spec(spec)
+    )
 
 
 @register
@@ -61,12 +146,17 @@ class NpxAutoInstallRule(BaseRule):
     ) -> Iterable[Finding]:
         if not server.command or server.command.lower() != "npx":
             return ()
-        has_auto = any(a in _NPX_AUTO_FLAGS for a in server.args)
-        package = _first_non_flag(server.args)
-        if not (has_auto and package):
+        options, first = _split_launcher_args(server.args, _NPX_VALUE_FLAGS)
+        has_auto = any(flag in options for flag in _NPX_AUTO_FLAGS)
+        # With --package/-p the installed package is named there and the
+        # positional is only the binary to run from it.
+        specs = [*options.get("--package", []), *options.get("-p", [])]
+        if not specs and first:
+            specs = [first]
+        unpinned = [spec for spec in specs if not _npm_spec_pinned(spec)]
+        if not (has_auto and unpinned):
             return ()
-        if _PINNED_SUFFIX.search(package) or "#" in package:
-            return ()
+        package = unpinned[0]
         return (
             self.build_finding(
                 target=target,
@@ -114,10 +204,14 @@ class UvxAutoInstallRule(BaseRule):
     ) -> Iterable[Finding]:
         if not server.command or server.command.lower() not in {"uvx", "pipx"}:
             return ()
-        package = _first_non_flag(server.args)
-        if not package:
-            return ()
-        if _PINNED_SUFFIX.search(package) or "==" in package:
+        args = server.args
+        if server.command.lower() == "pipx" and args[:1] == ("run",):
+            args = args[1:]
+        options, first = _split_launcher_args(args, _UVX_VALUE_FLAGS)
+        # ``uvx --from pkg cmd`` installs ``pkg`` and runs its ``cmd``.
+        from_specs = options.get("--from", [])
+        package = from_specs[0] if from_specs else first
+        if not package or _python_spec_pinned(package):
             return ()
         return (
             self.build_finding(

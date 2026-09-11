@@ -41,6 +41,13 @@ _FREE_TEXT_KEYS: frozenset[str] = frozenset(
 )
 
 
+#: Registry metadata (descriptions of variables, headers and the server
+#: listing) is documentation for the person installing the server; a
+#: model never reads it. Phrases such as "your secret API key" or "act as
+#: yourself" are ordinary there. Model-facing text (tool descriptions)
+#: only exists at runtime and is inspected by the proxy instead.
+_OPERATOR_FACING_PREFIXES: tuple[str, ...] = ("registryPackage", "registryRemote")
+
 _MAX_DEPTH = 64
 
 # Hard cap on findings emitted by a single invocation of this rule per
@@ -108,6 +115,8 @@ class ToolDescriptionPromptInjectionRule(BaseRule):
         findings: list[Finding] = []
         hits_skipped = 0
         for subpath, text in _iter_free_text(server.raw):
+            if subpath.startswith(_OPERATOR_FACING_PREFIXES):
+                continue
             last = subpath.rsplit(".", 1)[-1].split("[", 1)[0]
             if last not in _FREE_TEXT_KEYS:
                 continue

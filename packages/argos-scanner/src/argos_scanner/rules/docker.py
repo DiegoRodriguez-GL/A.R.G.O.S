@@ -12,7 +12,13 @@ from argos_scanner.registry import register
 from argos_scanner.rules._base import BaseRule
 
 _DOCKER_BINS: frozenset[str] = frozenset({"docker", "podman", "nerdctl"})
-_HOST_MOUNT = re.compile(r"^(/|\$HOME|~|%USERPROFILE%|%HOMEPATH%)(:|/|$)")
+_HOME = r"(?:~|\$HOME|\$\{HOME\}|%USERPROFILE%|%HOMEPATH%)"
+#: Credential stores of other tools that live under the home directory.
+_CREDENTIAL_DIRS = r"(?:\.ssh|\.aws|\.kube|\.gnupg|\.docker|\.azure|\.config/gcloud)"
+#: The host root, the whole home directory, or a well-known credential
+#: store under it. A tool's own sub-directory (``~/.config/<tool>``) is a
+#: scoped mount and is not reported.
+_HOST_MOUNT = re.compile(rf"^(?:/|{_HOME}[\\/]?|{_HOME}[\\/]{_CREDENTIAL_DIRS}(?:[\\/].*)?)$")
 
 
 def _is_docker(server: MCPServer) -> bool:
@@ -74,9 +80,10 @@ class DockerHostMountRule(BaseRule):
     title = "Docker server mounts the host filesystem at /"
     severity = Severity.CRITICAL
     description = (
-        "The server mounts a top-level host path (`/`, `$HOME`, `%USERPROFILE%`) "
-        "into the container. The agent now has read/write access to the "
-        "operator's personal data and system files."
+        "The server mounts the host root, the whole home directory (`$HOME`, "
+        "`~`, `%USERPROFILE%`) or a credential store under it (`~/.ssh`, "
+        "`~/.aws`, `~/.kube`, ...) into the container. The agent now has "
+        "access to the operator's personal data, system files or keys."
     )
     remediation = "Mount only the specific directory the server needs, read-only when possible."
     compliance_refs = (
