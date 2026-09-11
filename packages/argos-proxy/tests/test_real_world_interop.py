@@ -182,7 +182,11 @@ class TestNoMessageDropped:
         finally:
             await transport.close()
             server.close()
-        assert [m.method for m in methods] == ["notifications/initialized", "tools/list", "ping"]
+        assert [getattr(m, "method", None) for m in methods] == [
+            "notifications/initialized",
+            "tools/list",
+            "ping",
+        ]
 
 
 # ---------------------------------------------------------------------------
@@ -234,7 +238,11 @@ class TestStdioServerTransport:
             feeder.write(_BURST)
             feeder.flush()
             got = [await asyncio.wait_for(transport.receive(), timeout=5) for _ in range(3)]
-            assert [m.method for m in got] == ["notifications/initialized", "tools/list", "ping"]
+            assert [getattr(m, "method", None) for m in got] == [
+                "notifications/initialized",
+                "tools/list",
+                "ping",
+            ]
             await transport.send(Response(result={}, id=3))
             wire = out.getvalue()
             assert wire.endswith(b"\n")

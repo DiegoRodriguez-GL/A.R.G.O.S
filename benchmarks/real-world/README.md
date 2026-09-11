@@ -67,7 +67,7 @@ SHA-256 of the server name so that no publisher is named here.
   `npx --package pkg`). Only 5 of 903 OCI packages are pinned by digest.
   No environment value carries a secret in a known format; the two literal
   bearer tokens found in headers are public by design.
-- **Cost.** Through `wrap`, the reference servers answer 0.03 to 0.84 ms
+- **Cost.** Through `wrap`, the reference servers answer 0.02 to 0.84 ms
   slower at the median. Against remote servers the difference is within
   network noise.
 

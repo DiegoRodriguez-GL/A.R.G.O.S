@@ -520,7 +520,7 @@ artefacts ([`benchmarks/real-world`](benchmarks/real-world),
 | Campaign | Result |
 |----------|--------|
 | Official MCP Registry, 30,871 `server.json` entries scanned | 0 crashes; manually validated precision 57.1 % with the original rules, 99.0 % after fixing their false-positive causes, every true positive kept |
-| 7 official reference servers (npm, PyPI) through `argos proxy wrap` | All sessions succeed; 0.03 to 0.84 ms added per request at the median; PII, drift and scope detectors fire on real traffic |
+| 7 official reference servers (npm, PyPI) through `argos proxy wrap` | All sessions succeed; 0.02 to 0.84 ms added per request at the median; PII, drift and scope detectors fire on real traffic |
 | 9 public remote servers over HTTPS (Microsoft Learn, AWS Knowledge, Cloudflare docs, Hugging Face, DeepWiki, ...) | All 7 anonymous servers work through the proxy; the 2 OAuth-protected ones are answered with a JSON-RPC error instead of a hang |
 
 The first contact failed: seven interoperability defects (stdio framing,

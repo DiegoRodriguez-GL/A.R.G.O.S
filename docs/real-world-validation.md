@@ -136,7 +136,7 @@ Median latency per request, directly and through `argos proxy wrap`, over
 | fetch | 0.98 | 1.42 |
 | git | 36.07 | 36.10 |
 
-The added cost (0.03 to 0.84 ms at the median) is an order of magnitude
+The added cost (0.02 to 0.84 ms at the median) is an order of magnitude
 above the 0.054 ms of the in-memory benchmark because every message now
 crosses an extra process and two pipes; it remains far below the 50 ms
 budget. Against remote servers the difference changes sign from one server
