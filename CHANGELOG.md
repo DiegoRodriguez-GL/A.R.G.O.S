@@ -6,6 +6,54 @@ inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added -- Real-world validation (September 2026)
+
+- `argos proxy wrap`: the proxy as a stdio server inside any MCP client that
+  launches servers as commands (Claude Desktop, VS Code, Cursor, MCP
+  Inspector). The client talks to ARGOS, ARGOS launches the real server;
+  `--upstream https://...` targets a remote server instead, `-H 'Name:
+  env:VAR'` adds headers whose values come from the environment.
+- `argos_proxy.StdioServerTransport`: downstream transport over the
+  process's own stdin/stdout.
+- `argos_scanner.registry_format`: `argos scan` reads `server.json` entries
+  of the official MCP Registry (bare or inside the API envelope) and audits
+  each package and remote as the client entry an installer would write.
+- `argos proxy run/wrap --stdio-framing`, `--header`, and `sse+https://`
+  upstreams.
+- `benchmarks/real-world/`: scripts, manual labels and aggregated results of
+  the three real-world campaigns (the whole MCP Registry, seven reference
+  servers, nine public remote servers); see `docs/real-world-validation.md`.
+- 103 new tests (1,473 total), most of them reproducing behaviour observed
+  in real servers and registry entries.
+
+### Fixed -- Real-world validation (September 2026)
+
+- stdio upstreams speak newline-delimited JSON, as the MCP specification
+  defines; `Content-Length` framing is now an explicit option.
+- Bare launcher names (`npx`, `uvx`) are resolved through `PATH`/`PATHEXT`,
+  so `.cmd` shims start on Windows.
+- The stdio transport drains the child's stderr, skips non-JSON lines on
+  stdout and follows the specification's shutdown sequence (close stdin,
+  terminate, kill, the whole process tree on Windows).
+- stdio, TCP and accepted-TCP transports no longer drop every message but
+  the first when several arrive in one read.
+- Streamable-HTTP client rewritten to MCP 2025-03-26 / 2025-06-18: TLS with
+  certificate verification, answers read from each POST response (JSON or
+  SSE, chunked or not), `Mcp-Session-Id`, `MCP-Protocol-Version`, optional
+  GET stream, `DELETE` on close, connection reuse, and HTTP failures
+  answered with a JSON-RPC error. The legacy SSE transport gained TLS and
+  chunked decoding.
+- `Request`/`Notification` no longer serialise an absent `params` as `null`,
+  which strict servers silently drop.
+- PII detector recognises IBANs in the printed four-character groups.
+- Scanner rules, measured against the MCP Registry: bearer placeholders
+  (`{name}`, `${VAR}`, `<name>`) are not tokens; the entropy rule skips
+  URLs without credentials, paths, word-like identifiers, user agents,
+  e-mails and public EVM addresses; templated hosts are not judged as
+  plaintext; the host-mount rule targets the root, the whole home or known
+  credential stores; npx and uvx arguments are parsed like the launchers do;
+  registry documentation is not treated as model-facing text.
+
 ### Added -- Consolidation (September 2026)
 
 - `argos_core.compliance.manifest`: `MANIFEST.sha256` shipped next to the

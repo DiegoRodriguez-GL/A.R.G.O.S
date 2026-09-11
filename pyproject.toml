@@ -140,6 +140,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["ANN", "S", "PLR", "INP", "PLC0415", "SLF", "ARG", "B017", "PT011", "PT012", "FBT003", "RUF001", "RUF003"]
 "scripts/**"  = ["T201", "INP"]
+"benchmarks/**" = ["T201", "INP", "S310", "S603", "S607", "BLE001", "PLR2004", "C901", "PLR0912", "PLR0915", "ASYNC109", "ASYNC240"]
 "conftest.py" = ["INP"]
 # argos-proxy deliberately uses Union/typing for Pydantic compatibility
 # and pass-through except blocks for cooperative cancellation.

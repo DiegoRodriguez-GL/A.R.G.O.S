@@ -94,9 +94,9 @@ AICM, EU AI Act, NIST AI RMF and ISO/IEC 42001).
 
 | Capability | Command | Detail |
 |------------|---------|--------|
-| Static configuration audit | `argos scan`, `argos doctor` | 17 built-in rules over the three MCP configuration dialects in use (Claude Desktop, VS Code, MCP spec), plus your own YAML rules |
+| Static configuration audit | `argos scan`, `argos doctor` | 17 built-in rules over the MCP configuration dialects in use (Claude Desktop, VS Code, MCP spec) and over `server.json` entries of the official MCP Registry, plus your own YAML rules |
 | Red teaming | `argos redteam` | 20 probes, two per ASI category, single- or multi-turn, four detector families |
-| Runtime audit | `argos proxy run` | Transparent JSON-RPC 2.0 proxy over stdio, TCP, streamable-HTTP and SSE with tool-drift, PII and scope detectors, OpenTelemetry spans and a SQLite forensic trail |
+| Runtime audit | `argos proxy wrap`, `argos proxy run` | Transparent JSON-RPC 2.0 proxy with tool-drift, PII and scope detectors, OpenTelemetry spans and a SQLite forensic trail. `wrap` sits inside any MCP client over stdio; `run` exposes a TCP listener. Upstreams: stdio, TCP, streamable HTTP and SSE, over TLS for remote servers |
 | In-process audit | `ArgosCallbackHandler` | The same detector chain for LangChain / LangGraph agents that call tools in-process |
 | Empirical evaluation | `argos eval` | Six deterministic lab agents, YAML ground truth, confusion matrix with Wilson intervals, pinned as a regression test |
 | Reporting | `argos report` | Self-contained HTML with a cross-framework compliance matrix, strict CSP and secrets redacted by default; JSONL export |
@@ -169,32 +169,41 @@ argos scan config.json --rules 'MCP-SEC-DOCKER-*'
 argos scan config.json --format jsonl --output findings.jsonl
 argos doctor                 # auto-detect every known MCP config on this machine and scan it
 argos doctor --paths         # only list the paths
+
+# audit a server before installing it, straight from its MCP Registry entry
+curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=filesystem&limit=1" \
+  | jq '.servers[0]' > server.json
+argos scan server.json
 ```
 
-The parser normalises the three dialects into one `MCPConfig` model and
-applies stateless rules to it. Defensive limits: 8 MiB per file (checked
-before reading), BOM-tolerant decoding, `yaml.safe_load` only, recursion
-overflow converted into a typed parser error.
+The parser normalises every dialect into one `MCPConfig` model and applies
+stateless rules to it. A registry `server.json` (bare or inside the API's
+`{"server": ..., "_meta": ...}` envelope) is translated into the client entry
+an installer would write for each package (`npx`, `uvx`, `docker run`,
+`dnx`) and each remote, so the same rules audit what the client would end up
+running. Defensive limits: 8 MiB per file (checked before reading),
+BOM-tolerant decoding, `yaml.safe_load` only, recursion overflow converted
+into a typed parser error.
 
 | Rule | Severity | Detects |
 |------|----------|---------|
 | `MCP-SEC-SECRET-PATTERN` | Critical | Hard-coded credentials (GitHub, AWS, OpenAI, Anthropic, JWT, PEM, Slack, Stripe, Google) |
-| `MCP-SEC-SECRET-ENTROPY` | High | Opaque env values with Shannon entropy ≥ 4.0 and length ≥ 20 |
-| `MCP-SEC-TLS-PLAINTEXT` | High | Non-loopback `http://` URLs |
+| `MCP-SEC-SECRET-ENTROPY` | High | Opaque env values with Shannon entropy ≥ 4.0 and length ≥ 20 (URLs without credentials, paths, user agents, e-mails and public EVM addresses excluded) |
+| `MCP-SEC-TLS-PLAINTEXT` | High | `http://` URLs to a real non-loopback host (templated hosts are not judged) |
 | `MCP-SEC-SHELL-PIPE` | Critical | `curl … \| sh`, `wget … \| bash` |
 | `MCP-SEC-SHELL-INTERPRETER` | High | `bash -c`, `sh -c`, `pwsh -c` |
 | `MCP-SEC-SHELL-DESTRUCTIVE` | High | `rm -rf /`, `mkfs`, `dd of=/dev/…`, fork bombs |
 | `MCP-SEC-SHELL-EVAL` | Medium | `eval(…)`, `$(…)`, backticks |
 | `MCP-SEC-DOCKER-PRIVILEGED` | Critical | `docker run --privileged` |
-| `MCP-SEC-DOCKER-HOST-MOUNT` | Critical | `-v /:/host`, `$HOME` or `%USERPROFILE%` mounts |
+| `MCP-SEC-DOCKER-HOST-MOUNT` | Critical | Mounts of `/`, the whole home (`$HOME`, `~`, `%USERPROFILE%`) or a credential store under it (`~/.ssh`, `~/.aws`, `~/.kube`, ...) |
 | `MCP-SEC-DOCKER-HOST-NET` | High | `--network host` |
-| `MCP-SEC-SUPPLY-NPX-AUTO` | High | `npx -y <pkg>` without a pin |
-| `MCP-SEC-SUPPLY-UVX-AUTO` | High | `uvx` / `pipx` without a pin |
+| `MCP-SEC-SUPPLY-NPX-AUTO` | High | `npx -y` installing an unpinned package (`--package`/`-p` included) |
+| `MCP-SEC-SUPPLY-UVX-AUTO` | High | `uvx` / `pipx run` installing an unpinned package (`--from` included) |
 | `MCP-SEC-SUPPLY-DOCKER-TAG` | Medium | Docker image without an `@sha256:` digest |
 | `MCP-SEC-FS-ROOT` | High | Filesystem server rooted at `/` or a system directory |
 | `MCP-SEC-TOOL-POISON` | High | Prompt-injection phrasing in descriptions, prompts and notes |
 | `MCP-SEC-ENV-SENSITIVE-KEY` | Medium | Sensitive env prefixes (`AWS_`, `OPENAI_`, `GITHUB_`, …) |
-| `MCP-SEC-REMOTE-BEARER-HARDCODED` | High | Literal `Bearer <token>` in `headers.Authorization` |
+| `MCP-SEC-REMOTE-BEARER-HARDCODED` | High | A literal token in `Authorization: Bearer ...` (placeholders such as `${VAR}`, `{name}` or `<name>` are not tokens) |
 
 Every finding carries at least one `Evidence` and a tuple of qualified
 `compliance_refs` (for example `owasp_asi:ASI03`, `eu_ai_act:ART-15`) that
@@ -265,15 +274,38 @@ cross-reference table.
 ### Audit proxy
 
 ```bash
+# inside any MCP client that launches servers as commands
+argos proxy wrap -- npx -y @modelcontextprotocol/server-filesystem /data
+argos proxy wrap --allow-tool 'read_*' --allow-tool 'list_*' -- uvx mcp-server-git
+argos proxy wrap --upstream https://mcp.example.com/mcp -H 'Authorization: env:MCP_TOKEN'
+
+# as a TCP listener
 argos proxy run -u stdio:'npx -y @modelcontextprotocol/server-filesystem /tmp'
-argos proxy run -u tcp:127.0.0.1:9000 --duration 30
-argos proxy run -u http://localhost:9000/mcp --allow-tool 'fs.read*' --no-pii
-argos proxy run -u sse://localhost:9000/sse -l 0.0.0.0:8765 --allow-external
+argos proxy run -u https://mcp.example.com/mcp --allow-tool 'fs.read*' --no-pii
+argos proxy run -u sse+https://mcp.example.com/sse -l 0.0.0.0:8765 --allow-external
 argos proxy bench                              # latency benchmark, exit 1 above the 50 ms p95 budget
 ```
 
-Point the MCP client at `127.0.0.1:8765` instead of the server; nothing else
-changes. The proxy forwards every JSON-RPC 2.0 message unchanged (requests,
+`wrap` is the simplest deployment: replace the server command in the client
+configuration with `argos proxy wrap -- <server command>`. The client talks
+to ARGOS over stdio, ARGOS launches the real server, and every message
+crosses the detectors on the way. For example, in `claude_desktop_config.json`
+or `.vscode/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "argos",
+      "args": ["proxy", "wrap", "-f", "/var/log/argos/fs.sqlite3", "--",
+               "npx", "-y", "@modelcontextprotocol/server-filesystem@2026.8.31", "/data"]
+    }
+  }
+}
+```
+
+With `run`, point a TCP client at `127.0.0.1:8765` instead of the server.
+Either way the proxy forwards every JSON-RPC 2.0 message unchanged (requests,
 responses, notifications and batches, including server-initiated sampling and
 elicitation requests, which are inspected too), runs the detector chain, and
 writes every message and finding to a SQLite database in WAL mode.
@@ -284,10 +316,15 @@ writes every message and finding to a SQLite database in WAL mode.
 | `PIIDetector` | Emails, IBANs (mod-97), payment cards (Luhn), Spanish DNI/NIE in requests, responses and notifications; snippets are redacted before they reach the sink. |
 | `ScopeDetector` | Method and tool allowlists (globs). Out-of-scope `tools/call` is answered with `-32601` and never reaches the upstream. |
 
-Transports: stdio (`Content-Length` framing), TCP (NDJSON), streamable-HTTP
-(MCP 2025-03-26) and legacy SSE, with hand-written HTTP/1.1 and SSE parsers
-that reject request-smuggling shapes (conflicting `Content-Length`,
-`Content-Length` plus chunked encoding, oversized headers). The listener
+Upstream transports: stdio (newline-delimited JSON as the MCP specification
+defines it, `--stdio-framing content-length` for legacy servers), TCP
+(NDJSON), streamable HTTP (MCP 2025-03-26 and 2025-06-18: JSON or SSE
+answers to each POST, `Mcp-Session-Id`, `MCP-Protocol-Version`, optional GET
+stream, TLS with certificate verification) and legacy SSE. The HTTP/1.1 and
+SSE parsers are hand-written and reject request-smuggling shapes (conflicting
+`Content-Length`, `Content-Length` plus chunked encoding, oversized headers).
+If a remote server fails at the HTTP level, the pending requests are answered
+with a JSON-RPC error instead of leaving the client waiting. The listener
 bounds concurrency (`--max-sessions`), applies per-session idle timeouts,
 drains sessions gracefully on shutdown, refuses non-loopback binds unless
 `--allow-external` is given, and prints one machine-readable JSON identity
@@ -473,6 +510,27 @@ The operational budget is 50 ms at p95; the detector chain adds about
 failure. Methodology, threats to validity and the transferability plan are in
 [`docs/empirical-evaluation.md`](docs/empirical-evaluation.md).
 
+### Real-world validation
+
+The lab proves ARGOS does what its author imagined; the ecosystem proves
+whether that is what happens outside. Three campaigns against published
+artefacts ([`benchmarks/real-world`](benchmarks/real-world),
+[`docs/real-world-validation.md`](docs/real-world-validation.md)):
+
+| Campaign | Result |
+|----------|--------|
+| Official MCP Registry, 30,871 `server.json` entries scanned | 0 crashes; manually validated precision 57.1 % with the original rules, 99.0 % after fixing their false-positive causes, every true positive kept |
+| 7 official reference servers (npm, PyPI) through `argos proxy wrap` | All sessions succeed; 0.03 to 0.84 ms added per request at the median; PII, drift and scope detectors fire on real traffic |
+| 9 public remote servers over HTTPS (Microsoft Learn, AWS Knowledge, Cloudflare docs, Hugging Face, DeepWiki, ...) | All 7 anonymous servers work through the proxy; the 2 OAuth-protected ones are answered with a JSON-RPC error instead of a hang |
+
+The first contact failed: seven interoperability defects (stdio framing,
+Windows launchers, lost messages, a non-conforming streamable-HTTP client,
+`params: null`, printed IBANs, stderr handling) and one deployment gap (no
+mode a real client could use) had passed every lab test, because the lab
+fixtures shared the code's assumptions. All are fixed and pinned by
+regression tests, and the official MCP Inspector client now runs through
+`argos proxy wrap` unchanged.
+
 ---
 
 ## Security of ARGOS itself
@@ -513,7 +571,7 @@ Quality gates enforced in CI (Linux, macOS, Windows × Python 3.11, 3.12):
 
 - `ruff` with 35 rule families, zero warnings; `ruff format --check`.
 - `mypy --strict` over every package, zero errors.
-- `pytest` with a 70 % coverage floor (measured: 89 % of lines, 1 368 tests),
+- `pytest` with a 70 % coverage floor (measured: 89.7 % of statements, 1,473 tests),
   including property-based tests with Hypothesis and adversarial audit suites.
 - Design tokens generated from a single source and diffed in CI.
 - CodeQL (weekly and per push), OpenSSF Scorecard, `gitleaks` in pre-commit.
@@ -568,6 +626,9 @@ argos/
 - **Hosted documentation and landing** via the `docs.yml` workflow (GitHub Pages).
 - **Transferability study** against live LLM endpoints with a thin transport adapter and the existing request cap.
 - **More runtime detectors**: additional PII jurisdictions, judge-based prompt-injection detection, per-client rate limiting.
+- **OAuth 2.1 for protected remote servers** (today a bearer token can be passed with `--header`), and a streamable-HTTP listener for clients that only speak HTTP.
+- **Secret patterns in headers and arguments**, not only in `env` (a gap found while auditing the MCP Registry).
+- **Periodic registry audit** in CI against a fresh snapshot of the official MCP Registry.
 - **Signed manifest of first-party plugin hashes** once an external plugin ecosystem exists.
 - **Empirical calibration of the CBRA weights** from documented agentic incidents.
 

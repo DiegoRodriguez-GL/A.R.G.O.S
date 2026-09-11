@@ -1,0 +1,181 @@
+{
+ "entries": 30871,
+ "retrieved_at": "2026-09-11T10:57:19.173871+00:00",
+ "elapsed_s": 221.9,
+ "scan_ms": {
+  "mean": 6.482,
+  "median": 6.352,
+  "p95": 8.026,
+  "max": 49.891
+ },
+ "status": {
+  "active": 30538,
+  "deprecated": 333
+ },
+ "errors": {
+  "parser": 2
+ },
+ "with_packages": 13375,
+ "with_remotes": 18590,
+ "with_both": 1508,
+ "package_types": {
+  "npm": 8706,
+  "oci": 903,
+  "pypi": 3697,
+  "mcpb": 1169,
+  "nuget": 111,
+  "cargo": 49
+ },
+ "remote_types": {
+  "streamable-http": 18024,
+  "sse": 1073
+ },
+ "package_transports": {
+  "stdio": 14129,
+  "streamable-http": 476,
+  "sse": 30
+ },
+ "remote_urls": {
+  "total": 19097,
+  "schemes": {
+   "https": 19097
+  },
+  "loopback_hosts": 0,
+  "templated": 225
+ },
+ "rules": [
+  {
+   "rule": "MCP-SEC-SUPPLY-DOCKER-TAG",
+   "severity": "medium",
+   "findings": 900,
+   "entries": 884,
+   "entries_pct": 2.86,
+   "active_entries": 875
+  },
+  {
+   "rule": "MCP-SEC-ENV-SENSITIVE-KEY",
+   "severity": "medium",
+   "findings": 456,
+   "entries": 416,
+   "entries_pct": 1.35,
+   "active_entries": 414
+  },
+  {
+   "rule": "MCP-SEC-REMOTE-BEARER-HARDCODED",
+   "severity": "high",
+   "findings": 395,
+   "entries": 393,
+   "entries_pct": 1.27,
+   "active_entries": 393
+  },
+  {
+   "rule": "MCP-SEC-SUPPLY-UVX-AUTO",
+   "severity": "high",
+   "findings": 194,
+   "entries": 194,
+   "entries_pct": 0.63,
+   "active_entries": 191
+  },
+  {
+   "rule": "MCP-SEC-SECRET-ENTROPY",
+   "severity": "high",
+   "findings": 199,
+   "entries": 159,
+   "entries_pct": 0.52,
+   "active_entries": 158
+  },
+  {
+   "rule": "MCP-SEC-SUPPLY-NPX-AUTO",
+   "severity": "high",
+   "findings": 39,
+   "entries": 39,
+   "entries_pct": 0.13,
+   "active_entries": 39
+  },
+  {
+   "rule": "MCP-SEC-TLS-PLAINTEXT",
+   "severity": "high",
+   "findings": 14,
+   "entries": 14,
+   "entries_pct": 0.05,
+   "active_entries": 13
+  },
+  {
+   "rule": "MCP-SEC-TOOL-POISON",
+   "severity": "high",
+   "findings": 12,
+   "entries": 12,
+   "entries_pct": 0.04,
+   "active_entries": 12
+  },
+  {
+   "rule": "MCP-SEC-DOCKER-HOST-MOUNT",
+   "severity": "critical",
+   "findings": 3,
+   "entries": 3,
+   "entries_pct": 0.01,
+   "active_entries": 3
+  },
+  {
+   "rule": "MCP-SEC-DOCKER-HOST-NET",
+   "severity": "high",
+   "findings": 2,
+   "entries": 2,
+   "entries_pct": 0.01,
+   "active_entries": 2
+  },
+  {
+   "rule": "MCP-SEC-SHELL-EVAL",
+   "severity": "medium",
+   "findings": 1,
+   "entries": 1,
+   "entries_pct": 0.0,
+   "active_entries": 1
+  }
+ ],
+ "findings_total": 2215,
+ "severity_findings": {
+  "critical": 3,
+  "high": 855,
+  "medium": 1357,
+  "low": 0,
+  "info": 0
+ },
+ "entries_by_worst_severity": {
+  "critical": 3,
+  "high": 811,
+  "medium": 1213,
+  "low": 0,
+  "info": 0
+ },
+ "entries_with_findings": 2027,
+ "entries_with_findings_pct": 6.57,
+ "entries_high_or_critical": 814,
+ "entries_high_or_critical_pct": 2.64,
+ "active_with_findings_pct": 6.59,
+ "active_high_plus_pct": 2.65,
+ "deprecated_with_findings_pct": 4.2,
+ "deprecated_high_plus_pct": 1.5,
+ "by_channel": {
+  "npm": {
+   "entries": 8458,
+   "with_findings_pct": 6.37,
+   "high_plus_pct": 2.03
+  },
+  "pypi": {
+   "entries": 3681,
+   "with_findings_pct": 14.02,
+   "high_plus_pct": 6.3
+  },
+  "oci": {
+   "entries": 887,
+   "with_findings_pct": 99.77,
+   "high_plus_pct": 4.4
+  },
+  "remote-only": {
+   "entries": 17082,
+   "with_findings_pct": 2.12,
+   "high_plus_pct": 2.12
+  }
+ }
+}

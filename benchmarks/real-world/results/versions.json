@@ -1,0 +1,10 @@
+{
+"@modelcontextprotocol/server-everything": "2026.8.31",
+"@modelcontextprotocol/server-filesystem": "2026.8.31",
+"@modelcontextprotocol/server-memory": "2026.8.31",
+"@modelcontextprotocol/server-sequential-thinking": "2026.8.31",
+"mcp-server-time": "2026.8.18",
+"mcp-server-fetch": "2026.8.18",
+"mcp-server-git": "2026.8.18",
+"_retrieved": "2026-09-11T11:34:51Z"
+}
