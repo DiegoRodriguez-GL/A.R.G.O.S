@@ -7,13 +7,18 @@ can be parametrised on framing.
 
 This transport does NOT enable TLS. The proxy is documented as
 local-first (loopback only); the threat model assumes the operator
-controls the network path. A TLS-enabled transport is a [EXTENSION] in
-the roadmap.
+controls the network path. Remote servers are reached over
+:class:`argos_proxy.transport.http.HttpStreamableTransport`, which
+does speak TLS.
+
+Several messages may arrive in one read; all of them are queued and
+delivered in order.
 """
 
 from __future__ import annotations
 
 import asyncio
+from collections import deque
 
 from argos_proxy.jsonrpc import Batch, Message, parse_payload
 from argos_proxy.jsonrpc.framing import NDJSONFramer, encode_message
@@ -23,6 +28,8 @@ from argos_proxy.transport._base import (
     TransportError,
 )
 
+_READ_CHUNK: int = 65536
+
 
 class TcpTransport(Transport):
     """Client-side TCP transport over NDJSON framing."""
@@ -31,6 +38,7 @@ class TcpTransport(Transport):
         "_closed",
         "_framer",
         "_host",
+        "_pending",
         "_port",
         "_read_lock",
         "_reader",
@@ -50,6 +58,7 @@ class TcpTransport(Transport):
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
         self._framer = NDJSONFramer()
+        self._pending: deque[bytes] = deque()
         self._read_lock = asyncio.Lock()
         self._write_lock = asyncio.Lock()
         self._closed = False
@@ -87,7 +96,7 @@ class TcpTransport(Transport):
                 raise ClosedTransportError(msg) from exc
 
     async def receive(self) -> Message | Batch:
-        if self._closed:
+        if self._closed and not self._pending:
             msg = "transport is closed"
             raise ClosedTransportError(msg)
         if self._reader is None:
@@ -98,17 +107,19 @@ class TcpTransport(Transport):
             raise TransportError(msg)
         async with self._read_lock:
             while True:
-                bodies = self._framer.feed(b"")
-                if bodies:
-                    return parse_payload(bodies[0])
-                chunk = await reader.read(4096)
+                while self._pending:
+                    body = self._pending.popleft()
+                    if body.strip():
+                        return parse_payload(body)
+                if self._closed:
+                    msg = "transport is closed"
+                    raise ClosedTransportError(msg)
+                chunk = await reader.read(_READ_CHUNK)
                 if not chunk:
                     self._closed = True
                     msg = "peer closed the connection"
                     raise ClosedTransportError(msg)
-                ready = self._framer.feed(chunk)
-                if ready:
-                    return parse_payload(ready[0])
+                self._pending.extend(self._framer.feed(chunk))
 
     async def close(self) -> None:
         if self._closed:

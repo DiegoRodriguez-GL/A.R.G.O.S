@@ -155,6 +155,21 @@ class Request(BaseModel):
         # :class:`Notification` when ``id`` is missing from the source.
         return self
 
+    @model_serializer
+    def _serialize(self) -> dict[str, Any]:
+        """Leave ``params`` out when the request has none.
+
+        JSON-RPC 2.0 lets ``params`` be omitted but never null, and strict
+        servers drop a message whose ``params`` is null: the MCP
+        TypeScript SDK validates every incoming message and discards a
+        ``tools/list`` sent as ``"params": null`` without answering.
+        """
+        out: dict[str, Any] = {"jsonrpc": self.jsonrpc, "method": self.method}
+        if self.params is not None:
+            out["params"] = self.params
+        out["id"] = self.id
+        return out
+
 
 class Notification(BaseModel):
     """JSON-RPC 2.0 notification. No ``id``; no response is expected."""
@@ -164,6 +179,14 @@ class Notification(BaseModel):
     jsonrpc: Literal["2.0"] = "2.0"
     method: _MethodStr
     params: _ParamsT | None = None
+
+    @model_serializer
+    def _serialize(self) -> dict[str, Any]:
+        """Leave ``params`` out when absent (see :meth:`Request._serialize`)."""
+        out: dict[str, Any] = {"jsonrpc": self.jsonrpc, "method": self.method}
+        if self.params is not None:
+            out["params"] = self.params
+        return out
 
 
 class Response(BaseModel):

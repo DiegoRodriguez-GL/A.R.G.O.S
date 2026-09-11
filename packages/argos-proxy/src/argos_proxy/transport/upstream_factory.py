@@ -28,7 +28,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from argos_proxy.transport._base import Transport
 from argos_proxy.transport.http import HttpStreamableTransport, SseTransport
 from argos_proxy.transport.memory import InMemoryTransport, make_transport_pair
-from argos_proxy.transport.stdio import StdioTransport
+from argos_proxy.transport.stdio import StdioTransport, normalise_framing
 from argos_proxy.transport.tcp import TcpTransport
 
 
@@ -51,22 +51,26 @@ class StdioUpstreamFactory(UpstreamFactory):
     deployments because no state is shared across sessions.
     """
 
-    __slots__ = ("_argv", "_env")
+    __slots__ = ("_argv", "_env", "_framing")
 
     def __init__(
         self,
         argv: Sequence[str],
         *,
         env: dict[str, str] | None = None,
+        framing: str = "ndjson",
     ) -> None:
         if not argv:
             msg = "argv must contain at least the executable name"
             raise ValueError(msg)
         self._argv = tuple(argv)
         self._env = dict(env) if env is not None else None
+        # Validate now so a typo fails at startup, not on the first session.
+        normalise_framing(framing)
+        self._framing = framing
 
     async def __call__(self) -> Transport:
-        transport = StdioTransport(self._argv, env=self._env)
+        transport = StdioTransport(self._argv, env=self._env, framing=self._framing)
         await transport.start()
         return transport
 
@@ -93,22 +97,36 @@ class TcpUpstreamFactory(UpstreamFactory):
 
 
 class HttpStreamableUpstreamFactory(UpstreamFactory):
-    """Open a streamable-http (MCP spec 2025-03-26) connection per session.
+    """Open a streamable-http connection (MCP 2025-03-26 / 2025-06-18) per session.
 
     The full URL (scheme + host + port + path) is captured at
-    construction; each session opens its own pair of TCP sockets to the
-    upstream so per-session interceptors stay isolated."""
+    construction; each session opens its own connections to the
+    upstream so per-session interceptors and MCP sessions stay isolated.
+    ``headers`` are added to every request (for example an
+    ``Authorization`` header for a protected server)."""
 
-    __slots__ = ("_url",)
+    __slots__ = ("_headers", "_url", "_verify_tls")
 
-    def __init__(self, url: str) -> None:
+    def __init__(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str] | None = None,
+        verify_tls: bool = True,
+    ) -> None:
         if not url.startswith(("http://", "https://")):
             msg = f"streamable-http URL must start with http:// or https://, got {url!r}"
             raise ValueError(msg)
         self._url = url
+        self._headers = dict(headers or {})
+        self._verify_tls = verify_tls
 
     async def __call__(self) -> Transport:
-        transport = HttpStreamableTransport(self._url)
+        transport = HttpStreamableTransport(
+            self._url,
+            headers=self._headers,
+            verify_tls=self._verify_tls,
+        )
         await transport.connect()
         return transport
 
@@ -121,17 +139,31 @@ class SseUpstreamFactory(UpstreamFactory):
     upstream to emit the canonical ``endpoint`` event on the SSE
     stream within five seconds and uses that URL for POSTs."""
 
-    __slots__ = ("_post_url", "_sse_url")
+    __slots__ = ("_headers", "_post_url", "_sse_url", "_verify_tls")
 
-    def __init__(self, sse_url: str, *, post_url: str | None = None) -> None:
+    def __init__(
+        self,
+        sse_url: str,
+        *,
+        post_url: str | None = None,
+        headers: dict[str, str] | None = None,
+        verify_tls: bool = True,
+    ) -> None:
         if not sse_url.startswith(("http://", "https://")):
             msg = f"SSE URL must start with http:// or https://, got {sse_url!r}"
             raise ValueError(msg)
         self._sse_url = sse_url
         self._post_url = post_url
+        self._headers = dict(headers or {})
+        self._verify_tls = verify_tls
 
     async def __call__(self) -> Transport:
-        transport = SseTransport(self._sse_url, post_url=self._post_url)
+        transport = SseTransport(
+            self._sse_url,
+            post_url=self._post_url,
+            headers=self._headers,
+            verify_tls=self._verify_tls,
+        )
         await transport.connect()
         return transport
 

@@ -8,11 +8,17 @@ the accepted variant wraps a *pre-existing* ``StreamReader`` /
 The accepted transport does not own the listener; closing it shuts down
 only its half of the duplex stream. The :class:`ProxyListener` (which
 calls ``asyncio.start_server``) manages the listener lifecycle.
+
+One socket read often carries several messages (a client typically
+sends ``notifications/initialized`` and its first request back to
+back). Every complete body the framer yields is queued and delivered
+in order; none is dropped.
 """
 
 from __future__ import annotations
 
 import asyncio
+from collections import deque
 from typing import TYPE_CHECKING
 
 from argos_proxy.jsonrpc import parse_payload
@@ -26,7 +32,7 @@ if TYPE_CHECKING:
     from argos_proxy.jsonrpc import Batch, Message
 
 
-_DEFAULT_READ_CHUNK: int = 4096
+_DEFAULT_READ_CHUNK: int = 65536
 
 
 class TcpAcceptedTransport(Transport):
@@ -50,6 +56,7 @@ class TcpAcceptedTransport(Transport):
         "_closed",
         "_framer",
         "_peer",
+        "_pending",
         "_read_lock",
         "_reader",
         "_write_lock",
@@ -70,6 +77,7 @@ class TcpAcceptedTransport(Transport):
         self._reader = reader
         self._writer = writer
         self._framer = NDJSONFramer() if framing == "ndjson" else StdioFramer()
+        self._pending: deque[bytes] = deque()
         self._peer = peer or _peer_string(writer)
         self._read_lock = asyncio.Lock()
         self._write_lock = asyncio.Lock()
@@ -97,15 +105,18 @@ class TcpAcceptedTransport(Transport):
                 raise ClosedTransportError(msg) from exc
 
     async def receive(self) -> Message | Batch:
-        if self._closed:
+        if self._closed and not self._pending:
             msg = f"transport to {self._peer} is closed"
             raise ClosedTransportError(msg)
         async with self._read_lock:
             while True:
-                # Drain any bodies the framer already buffered.
-                bodies = self._framer.feed(b"")
-                if bodies:
-                    return parse_payload(bodies[0])
+                while self._pending:
+                    body = self._pending.popleft()
+                    if body.strip():
+                        return parse_payload(body)
+                if self._closed:
+                    msg = f"transport to {self._peer} is closed"
+                    raise ClosedTransportError(msg)
                 try:
                     chunk = await self._reader.read(_DEFAULT_READ_CHUNK)
                 except (ConnectionResetError, BrokenPipeError) as exc:
@@ -120,9 +131,7 @@ class TcpAcceptedTransport(Transport):
                     self._closed = True
                     msg = f"peer {self._peer} closed the connection"
                     raise ClosedTransportError(msg)
-                ready = self._framer.feed(chunk)
-                if ready:
-                    return parse_payload(ready[0])
+                self._pending.extend(self._framer.feed(chunk))
 
     async def close(self) -> None:
         if self._closed:

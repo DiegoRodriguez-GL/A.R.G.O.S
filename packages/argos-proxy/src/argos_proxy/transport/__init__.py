@@ -29,6 +29,7 @@ from argos_proxy.transport.http import HttpStreamableTransport, SseTransport
 from argos_proxy.transport.http_server import HttpStreamableAcceptedTransport
 from argos_proxy.transport.memory import InMemoryTransport, make_transport_pair
 from argos_proxy.transport.stdio import StdioTransport
+from argos_proxy.transport.stdio_server import StdioServerTransport
 from argos_proxy.transport.tcp import TcpTransport
 from argos_proxy.transport.upstream_factory import (
     CallableUpstreamFactory,
@@ -52,6 +53,7 @@ __all__ = [
     "SharedUpstreamFactory",
     "SseTransport",
     "SseUpstreamFactory",
+    "StdioServerTransport",
     "StdioTransport",
     "StdioUpstreamFactory",
     "TcpAcceptedTransport",

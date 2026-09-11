@@ -285,25 +285,35 @@ class TestHttpStreamableClient:
         with pytest.raises(TransportError):
             await tx.connect()
 
-    async def test_upstream_returns_non_200_on_get(self) -> None:
+    async def test_get_refusal_is_tolerated(self) -> None:
+        # The server-to-client GET stream is optional in the MCP
+        # specification; a refusal must not stop the POST half.
         srv = _FakeStreamableServer()
         srv.respond_status_get = 503
         host, port = await srv.start()
         try:
             tx = HttpStreamableTransport(f"http://{host}:{port}/mcp")
-            with pytest.raises(TransportError, match="503"):
-                await tx.connect()
+            await tx.connect()
+            assert not tx.server_stream_open
+            await tx.send(Request(method="tools/list", id=5))
+            for _ in range(100):
+                if srv.received_posts:
+                    break
+                await asyncio.sleep(0.02)
+            assert json.loads(srv.received_posts[0].decode("utf-8"))["id"] == 5
+            await tx.close()
         finally:
             await srv.stop()
 
-    async def test_upstream_returns_wrong_content_type(self) -> None:
+    async def test_get_with_wrong_content_type_is_not_used_as_stream(self) -> None:
         srv = _FakeStreamableServer()
         srv.respond_content_type_get = "application/json"
         host, port = await srv.start()
         try:
             tx = HttpStreamableTransport(f"http://{host}:{port}/mcp")
-            with pytest.raises(TransportError, match="text/event-stream"):
-                await tx.connect()
+            await tx.connect()
+            assert not tx.server_stream_open
+            await tx.close()
         finally:
             await srv.stop()
 
@@ -320,7 +330,9 @@ class TestHttpStreamableClient:
         finally:
             await srv.stop()
 
-    async def test_receive_after_upstream_closes_raises_closed(self) -> None:
+    async def test_losing_the_server_stream_keeps_the_session(self) -> None:
+        # A dropped GET stream only ends server-initiated delivery; the
+        # session itself lives until close(), after which receive raises.
         srv = _FakeStreamableServer()
         host, port = await srv.start()
         try:
@@ -330,12 +342,17 @@ class TestHttpStreamableClient:
                 if srv.connections:
                     break
                 await asyncio.sleep(0.02)
-            # Force-close server side, then receive should raise.
             _, w = srv.connections[0]
             w.close()
+            for _ in range(100):
+                if not tx.server_stream_open:
+                    break
+                await asyncio.sleep(0.02)
+            assert not tx.server_stream_open
+            assert not tx.is_closed
+            await tx.close()
             with pytest.raises(ClosedTransportError):
                 await asyncio.wait_for(tx.receive(), timeout=2.0)
-            await tx.close()
         finally:
             await srv.stop()
 

@@ -1,10 +1,14 @@
 """``argos proxy``: transparent MCP audit proxy.
 
-Two subcommands:
+Three subcommands:
 
-- ``argos proxy run``: spawns an upstream subprocess, opens a TCP
-  listener and ferries JSON-RPC traffic between the two while running
-  the configured detectors.
+- ``argos proxy run``: opens a TCP listener and ferries JSON-RPC
+  traffic between each accepted client and a fresh upstream (stdio
+  subprocess, TCP, streamable HTTP or legacy SSE) while running the
+  configured detectors.
+- ``argos proxy wrap``: serves one client over this process's stdio,
+  so any MCP client that launches servers as commands (Claude Desktop,
+  VS Code, Cursor, the MCP Inspector) can be audited without changes.
 - ``argos proxy bench``: end-to-end latency benchmark used by Phase 5
   to verify RNF-02 (< 50 ms p95). Exits non-zero on regression.
 
@@ -29,6 +33,7 @@ from typing import Annotated, Final
 import typer
 from argos_proxy import (
     ChainInterceptor,
+    ClosedTransportError,
     FindingSink,
     ForensicsStore,
     HttpStreamableUpstreamFactory,
@@ -43,9 +48,12 @@ from argos_proxy import (
     ScopeDetector,
     SqliteForensicsSink,
     SseUpstreamFactory,
+    StdioServerTransport,
     StdioUpstreamFactory,
     TcpUpstreamFactory,
     ToolDriftDetector,
+    TransportError,
+    UpstreamFactory,
     make_transport_pair,
 )
 
@@ -292,11 +300,12 @@ def _parse_upstream_url(
       ``stdio:npx @modelcontextprotocol/server-filesystem /tmp``.
     - ``tcp:<host>:<port>`` -- open a TCP connection. Example:
       ``tcp:127.0.0.1:9000``.
-    - ``http://<host>:<port>/<path>`` -- streamable-http MCP transport
-      (spec 2025-03-26). Example: ``http://localhost:9000/mcp``.
+    - ``http(s)://<host>:<port>/<path>`` -- streamable-http MCP transport
+      (spec 2025-03-26 / 2025-06-18). Example: ``https://mcp.example.com/mcp``.
     - ``sse://<host>:<port>/<sse-path>[#<post-path>]`` -- legacy SSE MCP
-      transport. The optional ``#post-path`` overrides the auto-discovered
-      ``endpoint`` event. Example: ``sse://localhost:9000/sse``.
+      transport; ``sse+https://`` does the same over TLS. The optional
+      ``#post-path`` overrides the auto-discovered ``endpoint`` event.
+      Example: ``sse://localhost:9000/sse``.
 
     Returns ``(kind, payload)`` where ``kind`` is ``"stdio"``, ``"tcp"``,
     ``"http"``, or ``"sse"`` and ``payload`` is what the corresponding
@@ -327,25 +336,28 @@ def _parse_upstream_url(
     if value.startswith(("http://", "https://")):
         # Streamable-http MCP transport: the URL itself is the payload.
         return "http", (value,)
-    if value.startswith("sse://"):
+    if value.startswith(("sse://", "sse+https://")):
         # Legacy SSE transport. ``sse://host:port/sse[#post-path]``
         # rewrites to ``http://host:port/sse`` for the GET URL plus an
-        # optional explicit POST URL after the fragment.
-        body = value[len("sse://") :]
+        # optional explicit POST URL after the fragment; ``sse+https://``
+        # does the same over TLS.
+        scheme = "https" if value.startswith("sse+https://") else "http"
+        body = value.split("://", 1)[1]
         post_url: str | None = None
         if "#" in body:
             body, fragment = body.split("#", 1)
             post_url = (
-                f"http://{fragment}"
+                f"{scheme}://{fragment}"
                 if not fragment.startswith(("http://", "https://"))
                 else fragment
             )
-        sse_url = f"http://{body}"
+        sse_url = f"{scheme}://{body}"
         return "sse", (sse_url, post_url)
     msg = (
-        f"upstream must start with 'stdio:', 'tcp:', 'http://' or 'sse://', "
-        f"got {value!r}. Examples: 'stdio:npx @modelcontextprotocol/server-filesystem /tmp', "
-        f"'tcp:127.0.0.1:9000', 'http://localhost:9000/mcp', "
+        f"upstream must start with 'stdio:', 'tcp:', 'http://', 'https://', 'sse://' "
+        f"or 'sse+https://', got {value!r}. Examples: "
+        f"'stdio:npx @modelcontextprotocol/server-filesystem /tmp', "
+        f"'tcp:127.0.0.1:9000', 'https://mcp.example.com/mcp', "
         f"'sse://localhost:9000/sse'."
     )
     raise typer.BadParameter(msg)
@@ -479,6 +491,28 @@ def run(
             ),
         ),
     ] = False,
+    stdio_framing: Annotated[
+        str,
+        typer.Option(
+            "--stdio-framing",
+            help=(
+                "Framing spoken by a stdio upstream: 'ndjson' (the MCP "
+                "specification, default) or 'content-length' (legacy LSP style)."
+            ),
+        ),
+    ] = "ndjson",
+    header: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--header",
+            "-H",
+            help=(
+                "Extra HTTP header for a remote upstream, as 'Name: value'. "
+                "Write 'Name: env:VAR' to read the value from the environment. "
+                "Repeatable."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Run the audit proxy: bind a TCP listener, ferry every accepted client
     through the configured detector chain, and persist forensics to SQLite.
@@ -502,6 +536,12 @@ def run(
             "Restrict with a firewall or an allowlist.",
         )
     upstream_kind, upstream_payload = _parse_upstream_url(upstream)
+    factory, upstream_repr = _make_upstream_factory(
+        upstream_kind,
+        upstream_payload,
+        stdio_framing=stdio_framing,
+        headers=_parse_headers(header),
+    )
     asyncio.run(
         _run_listener(
             listen_host=listen_host,
@@ -517,6 +557,7 @@ def run(
             idle_timeout=idle_timeout,
             drain_timeout=drain_timeout,
             duration=duration,
+            prepared_factory=(factory, upstream_repr),
         ),
     )
 
@@ -547,7 +588,76 @@ def _build_shared_interceptor(
     return chain
 
 
-async def _run_listener(  # noqa: PLR0915 - dispatch on 4 upstream kinds
+def _parse_headers(values: list[str] | None) -> dict[str, str]:
+    """Parse repeated ``--header 'Name: value'`` options.
+
+    A value written as ``env:VARIABLE`` is read from the environment, so a
+    bearer token never has to appear in an MCP client configuration file
+    or in the process list.
+    """
+    headers: dict[str, str] = {}
+    for raw in values or []:
+        name, sep, value = raw.partition(":")
+        name = name.strip()
+        value = value.strip()
+        if not sep or not name or any(c in raw for c in "\r\n"):
+            msg = f"header must look like 'Name: value', got {raw!r}"
+            raise typer.BadParameter(msg, param_hint="--header")
+        if value.startswith("env:"):
+            variable = value[len("env:") :]
+            if variable not in os.environ:
+                msg = f"environment variable {variable!r} referenced by --header is not set"
+                raise typer.BadParameter(msg, param_hint="--header")
+            value = os.environ[variable]
+        headers[name] = value
+    return headers
+
+
+def _make_upstream_factory(
+    upstream_kind: str,
+    upstream_payload: tuple[str, ...] | tuple[str, int] | tuple[str, str | None],
+    *,
+    stdio_framing: str = "ndjson",
+    headers: dict[str, str] | None = None,
+) -> tuple[UpstreamFactory, str]:
+    """Build the upstream factory for a parsed ``--upstream`` value.
+
+    Returns the factory and a printable description of the upstream.
+    Header values are never part of the description.
+    """
+    if upstream_kind == "stdio":
+        argv = tuple(str(x) for x in upstream_payload)
+        try:
+            factory: UpstreamFactory = StdioUpstreamFactory(argv, framing=stdio_framing)
+        except ValueError as exc:
+            raise typer.BadParameter(str(exc), param_hint="--stdio-framing") from exc
+        return factory, f"stdio:{' '.join(argv)}"
+    if upstream_kind == "tcp":
+        host_str = str(upstream_payload[0])
+        # parser guarantees upstream_payload[1] is int for tcp kind.
+        port_int = int(upstream_payload[1])  # type: ignore[arg-type]
+        return TcpUpstreamFactory(host_str, port_int), f"tcp:{host_str}:{port_int}"
+    if upstream_kind == "http":
+        url_str = str(upstream_payload[0])
+        return HttpStreamableUpstreamFactory(url_str, headers=headers), url_str
+    if upstream_kind == "sse":
+        sse_url_str = str(upstream_payload[0])
+        post_url_raw = upstream_payload[1] if len(upstream_payload) > 1 else None
+        post_url_str = str(post_url_raw) if post_url_raw is not None else None
+        upstream_repr = (
+            f"sse://{sse_url_str}"
+            if post_url_str is None
+            else f"sse://{sse_url_str}#{post_url_str}"
+        )
+        return (
+            SseUpstreamFactory(sse_url_str, post_url=post_url_str, headers=headers),
+            upstream_repr,
+        )
+    msg = f"unknown upstream kind: {upstream_kind!r}"  # pragma: no cover - guarded by parser
+    raise typer.BadParameter(msg)  # pragma: no cover
+
+
+async def _run_listener(
     *,
     listen_host: str,
     listen_port: int,
@@ -562,7 +672,12 @@ async def _run_listener(  # noqa: PLR0915 - dispatch on 4 upstream kinds
     idle_timeout: float,
     drain_timeout: float,
     duration: float,
+    prepared_factory: tuple[UpstreamFactory, str] | None = None,
 ) -> None:
+    upstream_factory, upstream_repr = prepared_factory or _make_upstream_factory(
+        upstream_kind,
+        upstream_payload,
+    )
     store = ForensicsStore(forensics_db)
     await store.open()
     sink = SqliteForensicsSink(store)
@@ -581,40 +696,6 @@ async def _run_listener(  # noqa: PLR0915 - dispatch on 4 upstream kinds
         if enable_drift:
             chain.insert(0, ToolDriftDetector(sink, mode="warn"))
         return ChainInterceptor(*chain)
-
-    upstream_factory: (
-        StdioUpstreamFactory
-        | TcpUpstreamFactory
-        | HttpStreamableUpstreamFactory
-        | SseUpstreamFactory
-    )
-    if upstream_kind == "stdio":
-        argv = tuple(str(x) for x in upstream_payload)
-        upstream_factory = StdioUpstreamFactory(argv)
-        upstream_repr = f"stdio:{' '.join(argv)}"
-    elif upstream_kind == "tcp":
-        host_str = str(upstream_payload[0])
-        # parser guarantees upstream_payload[1] is int for tcp kind.
-        port_int = int(upstream_payload[1])  # type: ignore[arg-type]
-        upstream_factory = TcpUpstreamFactory(host_str, port_int)
-        upstream_repr = f"tcp:{host_str}:{port_int}"
-    elif upstream_kind == "http":
-        url_str = str(upstream_payload[0])
-        upstream_factory = HttpStreamableUpstreamFactory(url_str)
-        upstream_repr = url_str
-    elif upstream_kind == "sse":
-        sse_url_str = str(upstream_payload[0])
-        post_url_raw = upstream_payload[1] if len(upstream_payload) > 1 else None
-        post_url_str = str(post_url_raw) if post_url_raw is not None else None
-        upstream_factory = SseUpstreamFactory(sse_url_str, post_url=post_url_str)
-        upstream_repr = (
-            f"sse://{sse_url_str}"
-            if post_url_str is None
-            else f"sse://{sse_url_str}#{post_url_str}"
-        )
-    else:  # pragma: no cover - guarded by parser
-        msg = f"unknown upstream kind: {upstream_kind!r}"
-        raise typer.BadParameter(msg)
 
     listener = ProxyListener(
         host=listen_host,
@@ -669,6 +750,205 @@ async def _run_listener(  # noqa: PLR0915 - dispatch on 4 upstream kinds
         f"[argos.ok]proxy stopped:[/] {listener.sessions.total_started} sessions served, "
         f"{len(findings)} findings persisted to {forensics_db}",
     )
+
+
+# ---------------------------------------------------------------------------
+# argos proxy wrap
+# ---------------------------------------------------------------------------
+
+
+_WRAP_EPILOG = """\
+[bold]Examples[/]:
+
+  [cyan]argos proxy wrap -- npx -y @modelcontextprotocol/server-filesystem /data[/]
+    audit a local stdio server; use this line as the command in the MCP client
+
+  [cyan]argos proxy wrap --upstream https://mcp.example.com/mcp[/]
+    audit a remote streamable-HTTP server from a client that only speaks stdio
+
+  [cyan]argos proxy wrap --allow-tool 'read_*' -- uvx mcp-server-git[/]
+    answer every tool outside the allowlist with an error, without forwarding it
+
+Everything ARGOS prints goes to stderr; stdout carries MCP messages only.
+"""
+
+
+@proxy_app.command(
+    "wrap",
+    epilog=_WRAP_EPILOG,
+    context_settings={"allow_interspersed_args": False},
+)
+def wrap(
+    command: Annotated[
+        list[str] | None,
+        typer.Argument(
+            help="Upstream server command and its arguments. Omit when --upstream is given.",
+            show_default=False,
+        ),
+    ] = None,
+    upstream: Annotated[
+        str | None,
+        typer.Option(
+            "--upstream",
+            "-u",
+            help=(
+                "Remote upstream instead of a command: 'https://host/mcp' "
+                "(streamable HTTP) or 'sse+https://host/sse' (legacy SSE)."
+            ),
+        ),
+    ] = None,
+    forensics_db: Annotated[
+        Path,
+        typer.Option(
+            "--forensics-db",
+            "-f",
+            help="SQLite forensics database path.",
+            file_okay=True,
+            dir_okay=False,
+            writable=True,
+        ),
+    ] = Path("argos-proxy.sqlite3"),
+    enable_otel: Annotated[
+        bool,
+        typer.Option("--otel/--no-otel", help="Emit OpenTelemetry spans."),
+    ] = True,
+    enable_drift: Annotated[
+        bool,
+        typer.Option("--drift/--no-drift", help="Enable tool drift detector."),
+    ] = True,
+    enable_pii: Annotated[
+        bool,
+        typer.Option("--pii/--no-pii", help="Enable PII detector."),
+    ] = True,
+    allowed_tools: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--allow-tool",
+            help="Tool name (or glob) to permit. Repeatable. Empty = allow all.",
+        ),
+    ] = None,
+    stdio_framing: Annotated[
+        str,
+        typer.Option(
+            "--stdio-framing",
+            help=(
+                "Framing spoken by a command upstream: 'ndjson' (the MCP "
+                "specification, default) or 'content-length' (legacy LSP style)."
+            ),
+        ),
+    ] = "ndjson",
+    header: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--header",
+            "-H",
+            help=(
+                "Extra HTTP header for a remote upstream, as 'Name: value'. "
+                "Write 'Name: env:VAR' to read the value from the environment. "
+                "Repeatable."
+            ),
+        ),
+    ] = None,
+) -> None:
+    """Sit between an MCP client and one server over stdio.
+
+    Point the client at ARGOS instead of the server: the client launches
+    ``argos proxy wrap -- <server command>``, ARGOS launches the server,
+    and every message crosses the detector chain and lands in the
+    forensics database. Standard output carries MCP messages only.
+    """
+    if bool(command) == bool(upstream):
+        msg = "give exactly one upstream: the server command after '--', or --upstream"
+        raise typer.BadParameter(msg, param_hint="COMMAND / --upstream")
+    headers = _parse_headers(header)
+    if command:
+        kind: str = "stdio"
+        payload: tuple[str, ...] | tuple[str, int] | tuple[str, str | None] = tuple(command)
+    else:
+        kind, payload = _parse_upstream_url(str(upstream))
+    factory, upstream_repr = _make_upstream_factory(
+        kind,
+        payload,
+        stdio_framing=stdio_framing,
+        headers=headers,
+    )
+    exit_code = asyncio.run(
+        _run_wrap(
+            factory=factory,
+            upstream_repr=upstream_repr,
+            forensics_db=forensics_db,
+            enable_otel=enable_otel,
+            enable_drift=enable_drift,
+            enable_pii=enable_pii,
+            allowed_tools=tuple(allowed_tools) if allowed_tools else (),
+        ),
+    )
+    if exit_code:
+        raise typer.Exit(code=exit_code)
+
+
+async def _run_wrap(
+    *,
+    factory: UpstreamFactory,
+    upstream_repr: str,
+    forensics_db: Path,
+    enable_otel: bool,
+    enable_drift: bool,
+    enable_pii: bool,
+    allowed_tools: tuple[str, ...],
+    client: StdioServerTransport | None = None,
+) -> int:
+    """Serve one client over stdio until either side hangs up. Returns the exit code."""
+    err = get_err_console()
+    store = ForensicsStore(forensics_db)
+    await store.open()
+    sink = SqliteForensicsSink(store)
+    chain = _build_shared_interceptor(
+        sink=sink,
+        enable_otel=enable_otel,
+        enable_pii=enable_pii,
+        allowed_tools=allowed_tools,
+    )
+    if enable_drift:
+        chain.insert(0, ToolDriftDetector(sink, mode="warn"))
+    err.print(f"[argos.ok]argos proxy wrap:[/] auditing [argos.brand]{upstream_repr}[/]")
+    err.out(
+        _identity_line(bind_repr="stdio", upstream_repr=upstream_repr, forensics_db=forensics_db),
+    )
+    exit_code = 0
+    try:
+        try:
+            upstream = await factory()
+        except (TransportError, ClosedTransportError) as exc:
+            err.print(f"[argos.danger]argos proxy wrap:[/] cannot reach the upstream: {exc}")
+            return 1
+        server = ProxyServer(
+            client=client if client is not None else StdioServerTransport(),
+            upstream=upstream,
+            interceptor=ChainInterceptor(*chain),
+        )
+        try:
+            await server.run()
+        except Exception as exc:  # noqa: BLE001 - reported to the operator, exit code 1
+            err.print(f"[argos.danger]argos proxy wrap:[/] session aborted: {exc}")
+            exit_code = 1
+        finally:
+            await server.stop()
+            with contextlib.suppress(Exception):
+                await upstream.close()
+        tail = getattr(upstream, "stderr_tail", ())
+        if exit_code and tail:
+            err.print("[argos.muted]last upstream stderr lines:[/]")
+            for line in tail[-5:]:
+                err.out(f"  {line}")
+        findings = await store.findings()
+        err.print(
+            f"[argos.ok]argos proxy wrap:[/] session closed, {len(findings)} findings "
+            f"persisted to {forensics_db}",
+        )
+    finally:
+        await store.close()
+    return exit_code
 
 
 # Backwards-compatible single-callable export used by the app router.

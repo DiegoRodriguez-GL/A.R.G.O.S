@@ -37,10 +37,12 @@ _EMAIL_RE: Final[re.Pattern[str]] = re.compile(
     r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b",
 )
 
-# IBAN: 2 letters + 2 digits + 11..30 alphanumerics. Validated by
-# ``_iban_is_valid`` after the regex captures.
+# IBAN: 2 letters + 2 digits + 11..30 alphanumerics, either compact or in
+# the printed form with a space every four characters (ISO 13616 "paper
+# format", the way statements and invoices show it). Validated by
+# ``_iban_is_valid`` on the compacted value after the regex captures.
 _IBAN_RE: Final[re.Pattern[str]] = re.compile(
-    r"\b[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}\b",
+    r"\b[A-Z]{2}[0-9]{2}(?:[A-Z0-9]{11,30}|(?: [A-Z0-9]{4}){2,7}(?: [A-Z0-9]{1,4})?)\b",
 )
 
 # Spanish DNI: 8 digits and a control letter. The letter is checked
@@ -194,8 +196,16 @@ class PIIDetector(ProxyDetector):
     @staticmethod
     def _scan_iban(text: str) -> Iterable[_Match]:
         for m in _IBAN_RE.finditer(text):
-            if _iban_is_valid(m.group(0)):
-                yield _Match(kind="iban", snippet=_redact(m.group(0)))
+            groups = m.group(0).split(" ")
+            # A short word right after a printed IBAN can be captured as
+            # its last group; also try the value without that group.
+            candidates = ["".join(groups)]
+            if len(groups) > 3 and len(groups[-1]) < 4:
+                candidates.append("".join(groups[:-1]))
+            for compact in candidates:
+                if _iban_is_valid(compact):
+                    yield _Match(kind="iban", snippet=_redact(compact))
+                    break
 
     @staticmethod
     def _scan_dni(text: str) -> Iterable[_Match]:
